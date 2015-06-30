@@ -15,17 +15,18 @@
  */
 package org.createnet.compose.object;
 
+import org.createnet.compose.client.RestClient;
+import org.createnet.compose.serializer.ServiceObjectSerializer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.HttpResponse;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import org.createnet.compose.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class ServiceObject extends ComposeContainer implements Serializable {
+@JsonSerialize(using = ServiceObjectSerializer.class)
+public class ServiceObject extends ComposeContainer
+{
     
     Logger logger = LoggerFactory.getLogger(ServiceObject.class);
     
@@ -47,8 +50,19 @@ public class ServiceObject extends ComposeContainer implements Serializable {
 
     public Map<String, Stream> streams;
     public Map<String, Subscription> subscriptions;
-//    public List<Actuation> actuations;
+//    public Map<Actuation> actuations;
 
+    public ServiceObject() {
+        this.customFields = new HashMap<>();
+        this.properties = new HashMap<>();
+        
+        this.streams = new HashMap<>();
+        this.subscriptions = new HashMap<>();
+//        this.actuations = new HashMap<>();
+    }
+
+    
+    
     public void parseDefinition(String raw) {
         
         ObjectMapper mapper = new ObjectMapper();
@@ -68,6 +82,7 @@ public class ServiceObject extends ComposeContainer implements Serializable {
             JsonNode jsonStream = iterator.next();
             
             Stream stream = new Stream(jsonStream);
+            stream.setServiceObject(this);
             streams.put(stream.name, stream);
         }
                 
@@ -91,6 +106,19 @@ public class ServiceObject extends ComposeContainer implements Serializable {
 
     public void delete() {
         throw new UnsupportedOperationException("Not Implemented yet");
+    }
+    
+    public String toJSON() {
+        
+        ObjectMapper mapper = new ObjectMapper();
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(this);
+        } catch (JsonProcessingException ex) {
+            logger.error("Error converting to JSON", ex);
+        }
+        
+        return json;
     }
     
     @Override

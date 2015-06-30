@@ -15,6 +15,7 @@
  */
 package org.createnet.compose.object;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.createnet.compose.client.RestClient;
 
 import org.createnet.compose.Compose;
@@ -25,6 +26,7 @@ import org.createnet.compose.Compose;
  */
 abstract class ComposeContainer {
     
+    @JsonBackReference
     protected Compose container;
 
     public Compose getContainer() {
@@ -35,6 +37,7 @@ abstract class ComposeContainer {
         this.container = container;
     }
     
+    @JsonBackReference
     public RestClient getClient() {
         return getContainer().getClient();
     }

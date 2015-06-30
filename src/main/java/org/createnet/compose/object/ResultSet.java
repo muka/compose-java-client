@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +66,12 @@ public class ResultSet extends ArrayList<ResultSet.IRecord> {
                 
                 Date lastUpdate = new Date(row.get("lastUpdate").asLong());
                 
-                for (Channel channel : stream.channels) {
+                for (Map.Entry<String, Channel> entrySet : stream.channels.entrySet()) {
+                    
+                    String key = entrySet.getKey();
+                    Channel channel = entrySet.getValue();
+                    
                     if(channels.has(channel.name)) {
-                        
                         
                         Record record;
                         switch(channel.type) {

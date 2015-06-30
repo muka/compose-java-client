@@ -15,13 +15,16 @@
  */
 package org.createnet.compose.object;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-class StreamContainer extends ServiceObjectContainer
+abstract class StreamContainer extends ServiceObjectContainer
 {
     
+    @JsonBackReference
     protected Stream stream;
 
     public Stream getStream() {

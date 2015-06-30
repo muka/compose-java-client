@@ -15,19 +15,25 @@
  */
 package org.createnet.compose.object;
 
+import org.createnet.compose.client.RestClient;
+import org.createnet.compose.serializer.StreamSerializer;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.HttpResponse;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
-import java.util.ArrayList;
-import org.createnet.compose.client.RestClient;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
+@JsonSerialize(using = StreamSerializer.class)
 public class Stream extends ServiceObjectContainer {
     
     org.slf4j.Logger logger = LoggerFactory.getLogger(Stream.class);    
@@ -36,7 +42,7 @@ public class Stream extends ServiceObjectContainer {
     public String type;
     public String description;
     
-    public ArrayList<Channel> channels;
+    public Map<String, Channel> channels;
     
     public Stream(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -50,14 +56,27 @@ public class Stream extends ServiceObjectContainer {
 
     protected void parse(JsonNode json) {
         
-//        name = json.getObject().get("name").toString();
-//        type  = json.getObject().get("type").toString();
-//        description = json.getObject().get("description").toString();
+        channels = new HashMap<>();
+        
+        name = json.get("name").asText();
+        type = json.get("type").asText();
+        description = json.get("description").asText();
+        
+        if(json.has("channels")) {
+        
+            for (Iterator<JsonNode> iterator = json.get("channels").iterator(); iterator.hasNext();) {
+                JsonNode jsonChannel = iterator.next();            
+
+                Channel channel = new Channel(jsonChannel);
+                channel.setStream(this);
+                channels.put(channel.name, channel);
+
+            }
+        }
         
     }
     
     public void push() {
-        
     }
     
     public ResultSet pull() throws RestClient.HttpException {

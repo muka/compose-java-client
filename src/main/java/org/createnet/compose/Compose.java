@@ -16,6 +16,7 @@
 
 package org.createnet.compose;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.util.logging.Level;
 import org.createnet.compose.object.ServiceObject;
@@ -33,7 +34,6 @@ public class Compose {
     
     protected String uri = "http://servioticy.com";
     protected String apiKey;
-    
     protected RestClient client;
     
     public Compose(String apiKey, String uri) {
@@ -71,6 +71,8 @@ public class Compose {
         
         ServiceObject so = compose.load(soid);
         
+        
+        logger2.info(so.toJSON());
         logger2.info(so.toString());
         
     }
