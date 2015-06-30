@@ -17,10 +17,17 @@
 package org.createnet.compose;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import org.createnet.compose.object.ServiceObject;
 import org.createnet.compose.client.RestClient;
+import org.createnet.compose.exception.HttpException;
+import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.object.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,37 +51,33 @@ public class Compose {
         this.apiKey = apiKey;
     }
     
-    public ServiceObject load(String soid) {
+    public ServiceObject readDefinition(String json) throws IOException {
         
-        ServiceObject so = new ServiceObject();
+        ObjectMapper mapper = new ObjectMapper();
+
+        ServiceObject s = mapper.readValue(json, ServiceObject.class);
         
-        so.setContainer(this);
-        so.id = soid;
-        
-        try {
-            so.load();
-        } catch (UnirestException | RestClient.HttpException ex) {
-            logger.error("Error during request", ex);
-        }
-        return so;
+        return s;
     }
-
-    public static void main(String[] args) {
+    
+    public ServiceObject load(String soid) throws HttpException, RestClientException, IOException {
         
-        Logger logger2 = LoggerFactory.getLogger(Compose.class);
+        String response = this.getClient().get("/" + soid);
         
-        String apiKey = "Bearer f22cac2b27c16d79f1cf199ad81dbf2a9232524c";
-        String uri = "http://servioticy.local";
-        String soid = "1435572526142849de35ba51e46939f62d5b1f28d71a1";
-
-        Compose compose = new Compose(apiKey, uri);
+        ObjectMapper mapper = new ObjectMapper();
+        ServiceObject serviceObject = mapper.readValue(response, ServiceObject.class);
         
-        ServiceObject so = compose.load(soid);
+        serviceObject.setContainer(this);
         
-        
-        logger2.info(so.toJSON());
-        logger2.info(so.toString());
-        
+        return serviceObject;
+    }
+    
+    public void delete(String soid) throws HttpException, RestClientException, IOException {
+        this.getClient().delete("/" + soid);
+    }
+    
+    public void update(String soid, String definition) throws HttpException, RestClientException, IOException {
+        this.getClient().put("/" + soid, definition);
     }
     
     public String getApiKey() {
@@ -92,6 +95,27 @@ public class Compose {
         }
 
         return client;
+    }
+    
+
+    public static void main(String[] args) throws HttpException, RestClientException, IOException {
+        
+        Logger logger2 = LoggerFactory.getLogger(Compose.class);
+        
+        String apiKey = "Bearer f22cac2b27c16d79f1cf199ad81dbf2a9232524c";
+        String uri = "http://servioticy.local";
+        String soid = "1435572526142849de35ba51e46939f62d5b1f28d71a1";
+
+        Compose compose = new Compose(apiKey, uri);
+        
+        ServiceObject so = compose.load(soid);
+        
+        logger2.info(so.toJSON());
+        
+        ServiceObject so2 = compose.readDefinition(so.toJSON());
+        
+        logger2.info(so2.toJSON());
+        
     }
     
     

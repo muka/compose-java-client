@@ -16,10 +16,11 @@
 package org.createnet.compose.client;
 
 import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
+import org.createnet.compose.exception.HttpException;
+import org.createnet.compose.exception.RestClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,24 +29,6 @@ import org.slf4j.LoggerFactory;
  * @author Luca Capra <luca.capra@gmail.com>
  */
 public class RestClient {
-
-    public class HttpException extends Exception {
-
-        public int status;
-        public String statusText;
-        public String body;
-
-        HttpException(int status, String statusText, String body) {
-            this.status = status;
-            this.statusText = statusText;
-            this.body = body;
-        }
-
-        @Override
-        public String toString() {
-            return "HTTP " + this.status + " - " + this.statusText;
-        }
-    }
 
     Logger logger = LoggerFactory.getLogger(RestClient.class);
 
@@ -79,42 +62,42 @@ public class RestClient {
         return response.getBody();
     }
 
-    public String post(String path, String body) throws UnirestException, HttpException {
+    public String post(String path, String body) throws RestClientException, HttpException {
         try {
             return getBody(Unirest.post(this.uri + path).body(body).asString());
         } catch (UnirestException ex) {
             logger.error("Client exception", ex);
-            throw ex;
+            throw new RestClientException(ex);
         } catch (HttpException ex) {
             logger.error("Error during request", ex);
             throw ex;
         }
     }
 
-    public String put(String path, String body) throws UnirestException, HttpException {
+    public String put(String path, String body) throws HttpException, RestClientException {
         try {
             return getBody(Unirest.put(this.uri + path).body(body).asString());
         } catch (UnirestException ex) {
             logger.error("Error during request", ex);
-            throw ex;
+            throw new RestClientException(ex);
         }
     }
 
-    public String delete(String path) throws UnirestException, HttpException {
+    public String delete(String path) throws HttpException, RestClientException {
         try {
             return getBody(Unirest.delete(this.uri + path).asString());
         } catch (UnirestException ex) {
             logger.error("Error during request", ex);
-            throw ex;
+            throw new RestClientException(ex);
         }
     }
 
-    public String get(String path) throws UnirestException, HttpException {
+    public String get(String path) throws HttpException, RestClientException {
         try {
             return getBody(Unirest.get(this.uri + path).asString());
         } catch (UnirestException ex) {
             logger.error("Error during request", ex);
-            throw ex;
+            throw new RestClientException(ex);
         }
     }
 

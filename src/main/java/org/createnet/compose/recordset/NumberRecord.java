@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
-
-import com.fasterxml.jackson.databind.JsonNode;
+package org.createnet.compose.recordset;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
- */
-public class Channel extends StreamContainer 
-{
+ */   
+public class NumberRecord extends Record<Long> {
     
-    public String name;
-    public String type;
-    public String unit;
-
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
+    public Long value;
+    
+    @Override
+    public Long getValue() {
+        return value;
     }
-    
+
+    @Override
+    public String getType() {
+        return "number";
+    }
+
+    @Override
+    public void setValue(Object value) {
+        this.value = (Long)value;
+    }
+
 }
+

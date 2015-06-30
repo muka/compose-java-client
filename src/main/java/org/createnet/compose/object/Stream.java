@@ -23,9 +23,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.createnet.compose.exception.HttpException;
+import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.recordset.IRecord;
+import org.createnet.compose.recordset.RecordSet;
 
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +56,7 @@ public class Stream extends ServiceObjectContainer {
         parse(tree);
     }
 
-    Stream(JsonNode json) {
+    public Stream(JsonNode json) {
         parse(json);
     }
 
@@ -64,39 +70,63 @@ public class Stream extends ServiceObjectContainer {
         
         if(json.has("channels")) {
         
-            for (Iterator<JsonNode> iterator = json.get("channels").iterator(); iterator.hasNext();) {
-                JsonNode jsonChannel = iterator.next();            
-
+            for (JsonNode jsonChannel : json.get("channels")) {
                 Channel channel = new Channel(jsonChannel);
                 channel.setStream(this);
                 channels.put(channel.name, channel);
-
             }
         }
         
     }
     
-    public void push() {
+    
+    public void push(HashMap<String, Object> dataset) throws HttpException, RestClientException {
+        push(dataset);
     }
     
-    public ResultSet pull() throws RestClient.HttpException {
+    public void push(HashMap<String, Object> dataset, Date lastUpdate) throws HttpException, RestClientException {
+        
+        ArrayList<IRecord> records = new ArrayList<>();
+        
+        for (Map.Entry<String, Object> entrySet : dataset.entrySet()) {
+            
+            String key = entrySet.getKey();
+            Object value = entrySet.getValue();
+            
+            IRecord record = RecordSet.createRecord(this, key, value);
+            
+            if(record == null) continue;
+            
+            records.add(record);
+        }
+        
+        push(records, lastUpdate);
+    }
+    
+    public void push(ArrayList<IRecord> dataset) throws HttpException, RestClientException {
+        push(dataset, new Date());
+    }
+
+    public void push(ArrayList<IRecord> dataset, Date lastUpdate) throws HttpException, RestClientException {
+        
+        RecordSet records = new RecordSet(dataset, lastUpdate);
+        
+        String path = "/" + this.getServiceObject().id + "/streams/" + this.name;
+        
+        String json = records.toJSON();
+        this.getContainer().getClient().put(path, json);
+    }
+    
+    public ResultSet pull() throws HttpException, RestClientException {
         return pull(false);
     }
 
-    public ResultSet pull(boolean lastUpdate) throws RestClient.HttpException {
-        
-        
-        String path = "/" + this.getServiceObject().id + "/" + this.name;
-        try {
-            
-            String response = this.getContainer().getClient().get(path);
-            
-            return new ResultSet(response);
+    public ResultSet pull(boolean lastUpdate) throws HttpException, RestClientException {
 
-        } catch (UnirestException ex) {
-            return null;
-        }
-       
+        String path = "/" + this.getServiceObject().id + "/streams/" + this.name + ( lastUpdate ? "lastUpdate" : "" );
+        String response = this.getContainer().getClient().get(path);
+
+        return new ResultSet(response);
     }
 
 }

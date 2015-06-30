@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
-
-import com.fasterxml.jackson.databind.JsonNode;
+package org.createnet.compose.exception;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends StreamContainer 
-{
-    
-    public String name;
-    public String type;
-    public String unit;
+public class HttpException extends Exception {
 
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
+    public int status;
+    public String statusText;
+    public String body;
+
+    public HttpException(int status, String statusText, String body) {
+        this.status = status;
+        this.statusText = statusText;
+        this.body = body;
     }
-    
+
+    @Override
+    public String toString() {
+        return "HTTP " + this.status + " - " + this.statusText;
+    }
 }

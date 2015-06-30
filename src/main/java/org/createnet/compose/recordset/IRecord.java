@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.recordset;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Date;
+import org.createnet.compose.object.Channel;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends StreamContainer 
-{
+public interface IRecord<K> {
     
-    public String name;
-    public String type;
-    public String unit;
+    public Date getLastUpdate();
+    public void setLastUpdate(Date date);
+    
+    public String getType();
+    public String getName();
+    
+    public K getValue();
+    public void setValue(Object value);
 
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
-    }
+    public Channel getChannel();
+    public void setChannel(Channel channel);
     
 }

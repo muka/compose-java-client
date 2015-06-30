@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.deserializer;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import org.createnet.compose.object.Channel;
+import org.createnet.compose.object.Stream;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends StreamContainer 
-{
-    
-    public String name;
-    public String type;
-    public String unit;
+public class StreamDeserializer extends JsonDeserializer<Stream> {
 
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
+    @Override
+    public Stream deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        JsonNode tree = jp.getCodec().readTree(jp);
+        return new Stream(tree);
     }
-    
 }

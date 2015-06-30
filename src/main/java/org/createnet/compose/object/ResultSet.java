@@ -22,6 +22,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import org.createnet.compose.recordset.BooleanRecord;
+import org.createnet.compose.recordset.GeoPointRecord;
+import org.createnet.compose.recordset.IRecord;
+import org.createnet.compose.recordset.NumberRecord;
+import org.createnet.compose.recordset.StringRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +34,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class ResultSet extends ArrayList<ResultSet.IRecord> {
-    
+public class ResultSet extends ArrayList<IRecord> {
+   
     Logger logger = LoggerFactory.getLogger(ResultSet.class);
 
     protected Stream stream;
@@ -43,7 +48,7 @@ public class ResultSet extends ArrayList<ResultSet.IRecord> {
         this.stream = stream;
     }
     
-    ResultSet(String jsonString) {
+    public ResultSet(String jsonString) {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode json;
@@ -73,25 +78,25 @@ public class ResultSet extends ArrayList<ResultSet.IRecord> {
                     
                     if(channels.has(channel.name)) {
                         
-                        Record record;
+                        IRecord record;
                         switch(channel.type) {
                             case "geo_point":
                                 record = new GeoPointRecord(channels.get(channel.name).asText());
                             case "number":
                                 record = new NumberRecord();
-                                record.value = channels.get(channel.name).asLong();
+                                record.setValue(channels.get(channel.name).asLong());
                             case "boolean":
                                 record = new BooleanRecord();
-                                record.value = channels.get(channel.name).asBoolean();
+                                record.setValue(channels.get(channel.name).asBoolean());
                             case "string":
                             default:
                                 record = new StringRecord();
-                                record.value = channels.get(channel.name).asText();
+                                record.setValue(channels.get(channel.name).asText());
                             break;
                         }
                         
-                        record.channel = channel;
-                        record.lastUpdate = lastUpdate;
+                        record.setChannel(channel);
+                        record.setLastUpdate(lastUpdate);
                         
                         this.add(record);
                     }
@@ -103,52 +108,4 @@ public class ResultSet extends ArrayList<ResultSet.IRecord> {
 
     }
 
-    public interface IRecord {}
-
-    public class Record implements IRecord {
-        public Channel channel;
-        public Object value;
-        public Date lastUpdate;
-    }
-    
-    public class StringRecord extends Record {
-        public Long value;
-    }
-    
-    public class NumberRecord extends Record {
-        public Long value;
-    }
-    
-    public class BooleanRecord extends Record {
-        public boolean value;
-    }
-    
-    public class GeoPointRecord extends Record {
-        
-        class Point {
-            
-            public double latitude;
-            public double longitude;
-
-            public Point(String val) {
-
-                String[] coords = val.split(",");
-                
-                longitude = Double.parseDouble(coords[0].trim());
-                latitude = Double.parseDouble(coords[1].trim());
-            }
-            
-            @Override
-            public String toString() {
-                return this.longitude + "," + this.latitude;
-            }
-            
-        }
-
-        public GeoPointRecord(String point) {
-            value = new Point(point);
-        }
-        
-        public Point value;
-    }
 }

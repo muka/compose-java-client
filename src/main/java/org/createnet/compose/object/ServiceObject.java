@@ -15,18 +15,20 @@
  */
 package org.createnet.compose.object;
 
-import org.createnet.compose.client.RestClient;
 import org.createnet.compose.serializer.ServiceObjectSerializer;
+import org.createnet.compose.deserializer.ServiceObjectDeserializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.createnet.compose.exception.HttpException;
+import org.createnet.compose.exception.RestClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * @author Luca Capra <luca.capra@gmail.com>
  */
 @JsonSerialize(using = ServiceObjectSerializer.class)
+@JsonDeserialize(using = ServiceObjectDeserializer.class)
 public class ServiceObject extends ComposeContainer
 {
     
@@ -53,61 +56,16 @@ public class ServiceObject extends ComposeContainer
 //    public Map<Actuation> actuations;
 
     public ServiceObject() {
+
         this.customFields = new HashMap<>();
         this.properties = new HashMap<>();
         
         this.streams = new HashMap<>();
         this.subscriptions = new HashMap<>();
 //        this.actuations = new HashMap<>();
+
     }
 
-    
-    
-    public void parseDefinition(String raw) {
-        
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode tree;
-        try {
-            tree = mapper.readTree(raw);
-        } catch (IOException ex) {
-            logger.error("Cannot parse definition " + raw, ex);
-            return;
-        }
-        
-        id = tree.get("id").asText();
-        name = tree.get("name").asText();
-        description = tree.get("description").asText();
-        
-        for (Iterator<JsonNode> iterator = tree.get("streams").iterator(); iterator.hasNext();) {
-            JsonNode jsonStream = iterator.next();
-            
-            Stream stream = new Stream(jsonStream);
-            stream.setServiceObject(this);
-            streams.put(stream.name, stream);
-        }
-                
-    }
-    
-    public void create() {
-        throw new UnsupportedOperationException("Not Implemented yet");
-    }
-    
-    public void update() {
-        throw new UnsupportedOperationException("Not Implemented yet");
-    }
-    
-    public ServiceObject load() throws UnirestException, RestClient.HttpException {
-        
-        String response = this.getClient().get("/" + id);
-        parseDefinition(response);
-        
-        return this;
-    }
-
-    public void delete() {
-        throw new UnsupportedOperationException("Not Implemented yet");
-    }
-    
     public String toJSON() {
         
         ObjectMapper mapper = new ObjectMapper();
@@ -124,6 +82,19 @@ public class ServiceObject extends ComposeContainer
     @Override
     public String toString() {
         return "ServiceObject<"+ this.id +">";
+    }
+    
+    public ServiceObject load() throws HttpException, RestClientException, IOException {
+        return this.getContainer().load(id);
+    }
+    
+    public void delete() throws HttpException, RestClientException, IOException {
+        this.getContainer().delete(id);
+        this.id = null;
+    }
+    
+    public void update() throws HttpException, RestClientException, IOException {
+        this.getContainer().update(id, this.toJSON());
     }
     
 }

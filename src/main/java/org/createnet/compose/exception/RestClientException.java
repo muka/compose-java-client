@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.exception;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.mashape.unirest.http.exceptions.UnirestException;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends StreamContainer 
+public class RestClientException extends Exception
 {
-    
-    public String name;
-    public String type;
-    public String unit;
 
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
+    public RestClientException(UnirestException ex) {
+        super("RestClientException", ex);
     }
     
 }
