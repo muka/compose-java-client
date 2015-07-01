@@ -16,6 +16,7 @@
 package org.createnet.compose.object;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.createnet.compose.Compose;
 
 /**
  *
@@ -27,6 +28,11 @@ abstract class StreamContainer extends ServiceObjectContainer
     @JsonBackReference
     protected Stream stream;
 
+    @Override
+    public Compose getContainer() {
+        return stream.getServiceObject().getContainer();
+    }
+    
     public Stream getStream() {
         return stream;
     }

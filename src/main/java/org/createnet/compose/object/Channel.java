@@ -28,6 +28,9 @@ public class Channel extends StreamContainer
     public String type;
     public String unit;
 
+    public Channel() {
+    }
+    
     public Channel(JsonNode json) {
         name = json.get("name").asText();
         type = json.get("type").asText();

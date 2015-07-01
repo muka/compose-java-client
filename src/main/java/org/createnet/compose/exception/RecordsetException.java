@@ -13,28 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
-
-import java.util.Date;
-import org.createnet.compose.object.Channel;
+package org.createnet.compose.exception;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public interface IRecord<K> {
-    
-    public Date getLastUpdate();
-    public void setLastUpdate(Date date);
-    
-    public String getType();
-    public String getName();
-    
-    public K getValue();
-    public K parseValue(Object raw);
-    public void setValue(Object value);
+public class RecordsetException extends Exception
+{
 
-    public Channel getChannel();
-    public void setChannel(Channel channel);
+    public RecordsetException(Throwable ex) {
+        super("Recordset error", ex);
+    }
+    
+    public RecordsetException(String reason) {
+        super(reason);
+    }
     
 }

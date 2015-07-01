@@ -35,4 +35,17 @@ public class HttpException extends Exception {
     public String toString() {
         return "HTTP " + this.status + " - " + this.statusText;
     }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public String getBody() {
+        return body;
+    }
+    
 }

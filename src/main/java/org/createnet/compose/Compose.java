@@ -27,6 +27,7 @@ import org.createnet.compose.object.ServiceObject;
 import org.createnet.compose.client.RestClient;
 import org.createnet.compose.exception.HttpException;
 import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.object.Channel;
 import org.createnet.compose.object.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,8 +97,44 @@ public class Compose {
 
         return client;
     }
-    
 
+    public Channel createChannel(String soId, String streamName, String channelName) {
+        Stream stream = createStream(soId, streamName);
+        return createChannel(stream, channelName);
+    }
+    
+    public Channel createChannel(Stream stream, String channelName) {
+
+        Channel channel = new Channel();
+        channel.setStream(stream);
+
+        return channel;
+    }
+    
+    public Stream createStream(ServiceObject so, String streamName) {
+    
+        Stream stream = new Stream();
+        stream.name = streamName;
+    
+        stream.setServiceObject(so);
+        stream.setContainer(so.getContainer());
+        
+        return stream;
+    }
+    
+    public Stream createStream(String soId, String streamName) {
+        ServiceObject so = createServiceObject(soId);
+        return createStream(so, streamName);
+    }
+
+    private ServiceObject createServiceObject(String soId) {
+        
+        ServiceObject serviceObject = new ServiceObject(soId);
+        serviceObject.setContainer(this);
+        
+        return serviceObject;
+    }
+    
     public static void main(String[] args) throws HttpException, RestClientException, IOException {
         
         Logger logger2 = LoggerFactory.getLogger(Compose.class);
@@ -117,6 +154,6 @@ public class Compose {
         logger2.info(so2.toJSON());
         
     }
-    
+   
     
 }

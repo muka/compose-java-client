@@ -22,7 +22,7 @@ package org.createnet.compose.recordset;
 public class GeoPointRecord extends Record<String> {
 
     public Point point;
-    public String value;
+    protected String value;
 
     public GeoPointRecord() {}
     
@@ -41,10 +41,15 @@ public class GeoPointRecord extends Record<String> {
 
     @Override
     public void setValue(Object value) {
-        this.value = (String)value;
+        this.value = parseValue(value);
         this.point = new Point(this.value);
     }
 
+    @Override
+    public String parseValue(Object raw) {
+        return (String)raw;
+    }
+    
     @Override
     public String getType() {
         return "geo_point";

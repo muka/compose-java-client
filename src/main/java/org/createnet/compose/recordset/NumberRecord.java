@@ -21,7 +21,7 @@ package org.createnet.compose.recordset;
  */   
 public class NumberRecord extends Record<Long> {
     
-    public Long value;
+    protected Long value;
     
     @Override
     public Long getValue() {
@@ -35,8 +35,19 @@ public class NumberRecord extends Record<Long> {
 
     @Override
     public void setValue(Object value) {
-        this.value = (Long)value;
+        Long n = parseValue(value);
+        this.value = n;
     }
 
+    @Override
+    public Long parseValue(Object value) {
+        
+        if(value instanceof String){
+            return Long.parseLong((String)value);
+        }
+        
+        return (Long)value;
+    }    
+    
 }
 

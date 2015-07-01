@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 package org.createnet.compose.recordset;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import org.createnet.compose.exception.RecordsetException;
+import org.createnet.compose.object.Channel;
 import org.createnet.compose.object.Stream;
 
 /**
@@ -27,69 +35,130 @@ import org.createnet.compose.object.Stream;
  * @author Luca Capra <luca.capra@gmail.com>
  */
 public class RecordSet {
-    
+
     private Date lastUpdate;
     private ArrayList<IRecord> records;
+
+    public RecordSet(Stream stream, JsonNode row) throws RecordsetException {
+        
+        this.records = new ArrayList<>();
+        this.lastUpdate = new Date();
+        
+        parseJson(stream, row);
+    }
+    
+    public RecordSet(Stream stream, String body) throws IOException, RecordsetException {
+        
+        this.records = new ArrayList<>();        
+        this.lastUpdate = new Date();
+        
+        ObjectMapper mapper = new ObjectMapper();
+        parseJson(stream, mapper.readTree(body));
+    }
     
     public RecordSet(ArrayList<IRecord> records) {
         this.records = records;
         this.lastUpdate = new Date();
     }
-    
+
     public RecordSet(ArrayList<IRecord> records, Date date) {
         this.records = records;
         this.lastUpdate = date;
     }
 
     public static IRecord createRecord(Stream stream, String key, Object value) {
-        
-        if(!stream.channels.containsKey(key)) {
+
+        if (!stream.channels.isEmpty() && !stream.channels.containsKey(key)) {
             return null;
         }
         
-        IRecord record;
-        switch(stream.channels.get(key).type) {
-            case "string":
-                record = new StringRecord();
-                break;
-            case "boolean":
+        Channel channel = stream.channels.get(key);
+        IRecord record = null;
+
+        if(channel == null) {
+
+            String strVal = value.toString();
+            if(strVal.equals("false") || strVal.equals("true")) {
                 record = new BooleanRecord();
-                break;
-            case "number":
-                record = new NumberRecord();
-                break;
-            case "geo_point":
-                record = new GeoPointRecord();
-                break;
-            default:
-                return null;
+            }
+//                else if(
+//                    // matches [\d.\d,\d.\d]
+//                    strVal.matches("\\[?\\w*-?\\d+(\\.\\d+)?\\w*\\,\\w*-?\\d+(\\.\\d+)?\\w*\\]?") ||
+//                    // matches { "lat|lon
+//                    (strVal.matches("\\w*\\{\\w*\\\"lat") || strVal.matches("\\w*\\{\\w*\\\"lon"))
+//                    // ! wont match geohashes!
+//                        
+//                ) {
+//                    record = new GeoPointRecord();
+//                }
+            else {
+
+                NumberFormat formatter = NumberFormat.getInstance();
+                ParsePosition pos = new ParsePosition(0);
+                formatter.parse(strVal, pos);
+                if(strVal.length() == pos.getIndex()) {
+                    record = new NumberRecord();
+                }
+                else {
+                    // defaults to string
+                    record = new StringRecord();
+                }
+            }
+            
+            channel= new Channel();
+            channel.setStream(stream);
+            channel.name = key;
+            
         }
-        
+        else {
+            switch (channel.type) {
+                case "string":
+                    record = new StringRecord();
+                    break;
+                case "boolean":
+                    record = new BooleanRecord();
+                    break;
+                case "number":
+                    record = new NumberRecord();
+                    break;
+                case "geo_point":
+                    record = new GeoPointRecord();
+                    break;
+            }
+        }
+
         record.setValue(value);
+        record.setChannel(channel);
+
         return record;
     }
-    
-    public String toJSON() {
+
+    public String toJSON() throws JsonProcessingException {
         
-        Map<String, Object> channels = new HashMap<>();
-        
-        for (IRecord record : records) {
-            channels.put(record.getName(), record.getValue());
+        if(records == null) {
+            return null;
         }
         
+        if(lastUpdate == null) {
+            lastUpdate = new Date();
+        }
+        
+        Map<String, Object> channels = new HashMap<>();
+        for (IRecord record : records) {
+            
+            Map<String, Object> currValue = new HashMap<>();
+            currValue.put("current-value", record.getValue());
+            
+            channels.put(record.getName(), currValue);
+        }
+
         Map<String, Object> obj = new HashMap<>();
         obj.put("channels", channels);
-        obj.put("lastUpdate", (Long)lastUpdate.getTime() / 1000);
         
-        try {
-            
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(obj);
-            
-        } catch (IOException e) {
-            return null;
-        }        
+        obj.put("lastUpdate", (Long) lastUpdate.getTime() / 1000);
 
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsString(obj);
     }
 
     public Date getLastUpdate() {
@@ -108,6 +177,73 @@ public class RecordSet {
         this.records = records;
     }
 
+    private void parseJson(Stream stream, JsonNode row) throws RecordsetException {
+        
+        if(row.has("lastUpdate")) {
+            Date date = new Date(row.get("lastUpdate").asLong());
+            this.setLastUpdate(date);
+        }
+        
+        JsonNode channels = row.get("channels");
+        
+        if(channels == null) {
+            throw new RecordsetException("`channels` property is missing");
+        }
+        
+        for (Iterator<Map.Entry<String, JsonNode>> iterator = channels.fields(); iterator.hasNext();) {
+            
+            Map.Entry<String, JsonNode> item = iterator.next();
+            
+            String channelName = item.getKey();
+            JsonNode nodeValue = item.getValue();
+            
+            
+            // allow short-hand without current-value
+            JsonNode valObj = nodeValue;
+            if(nodeValue.has("current-value")) {
+                valObj = nodeValue.get("current-value");
+            }
+            
+            if(stream.channels != null && !stream.channels.isEmpty()) {
+                if (stream.channels.containsKey(channelName)) {
+        
+                    IRecord record = RecordSet.createRecord(stream, channelName, valObj.asText());
+                    if(record != null) {
+                        this.records.add(record);
+                    }
+
+                }            
+            }
+            else {
+                // definition is unknown, add all channels to the record set
+                IRecord record = RecordSet.createRecord(stream, channelName, valObj.asText());
+                this.records.add(record);
+                
+            }
+            
+        }
+
+    }
+
+    /**
+     * @param channelName 
+     * @return IRecord
+     */
+    public IRecord getByChannelName(String channelName) {
+        for (IRecord record : records) {
+            if(channelName.equals(record.getName())) {
+                return record;
+            }
+        }
+        return null;
+    }
     
-    
+    /**
+     * @param channel
+     * @return IRecord
+     */
+    public IRecord getByChannel(Channel channel) {
+        return getByChannelName(channel.name);
+    }
+
 }

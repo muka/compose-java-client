@@ -16,16 +16,22 @@
 package org.createnet.compose.object;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.createnet.compose.Compose;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-abstract class ServiceObjectContainer extends ComposeContainer{
+abstract class ServiceObjectContainer extends ComposeContainer {
     
     @JsonBackReference
     protected ServiceObject serviceObject;
 
+    @Override
+    public Compose getContainer() {
+        return getServiceObject().getContainer();
+    }
+    
     public void setServiceObject(ServiceObject serviceObject) {
         this.serviceObject = serviceObject;
     }

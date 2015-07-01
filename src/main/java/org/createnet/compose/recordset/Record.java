@@ -32,6 +32,9 @@ abstract public class Record<E> implements IRecord<E> {
     abstract public String getType();
     
     @Override
+    abstract public E parseValue(Object raw);
+    
+    @Override
     abstract public E getValue();
     
     @Override

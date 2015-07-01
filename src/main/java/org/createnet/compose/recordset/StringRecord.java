@@ -39,7 +39,12 @@ public class StringRecord extends Record<String> {
 
     @Override
     public void setValue(Object value) {
-        this.value = (String)value;
+        this.value = parseValue(value);
+    }
+    
+    @Override
+    public String parseValue(Object value) {
+        return (String)value;
     }
     
 }

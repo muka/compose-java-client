@@ -56,6 +56,15 @@ public class ServiceObject extends ComposeContainer
 //    public Map<Actuation> actuations;
 
     public ServiceObject() {
+        initialize();
+    }
+    
+    public ServiceObject(String soid) {
+        initialize();
+        this.id = soid;
+    }
+
+    private void initialize() {
 
         this.customFields = new HashMap<>();
         this.properties = new HashMap<>();
@@ -63,7 +72,6 @@ public class ServiceObject extends ComposeContainer
         this.streams = new HashMap<>();
         this.subscriptions = new HashMap<>();
 //        this.actuations = new HashMap<>();
-
     }
 
     public String toJSON() {

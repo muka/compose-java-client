@@ -21,7 +21,7 @@ package org.createnet.compose.recordset;
  */
 public class BooleanRecord extends Record<Boolean> {
     
-    public boolean value;
+    protected boolean value;
     
     @Override
     public String getType() {
@@ -35,7 +35,17 @@ public class BooleanRecord extends Record<Boolean> {
 
     @Override
     public void setValue(Object value) {
-        this.value = (Boolean)value;
+        this.value = parseValue(value);
     }
 
+    @Override
+    public Boolean parseValue(Object value) {
+        
+        if(value instanceof String)
+            return Boolean.parseBoolean((String)value);
+
+        return (Boolean)value;
+    }    
+    
+    
 }
