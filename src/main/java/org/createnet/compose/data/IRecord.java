@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
+package org.createnet.compose.data;
 
 import java.util.Date;
 import org.createnet.compose.object.Channel;
@@ -36,5 +36,10 @@ public interface IRecord<K> {
 
     public Channel getChannel();
     public void setChannel(Channel channel);
+
+    public Long getLastUpdateTime();
+    
+    public RecordSet getRecordSet();
+    public void setRecordSet(RecordSet recordset);
     
 }

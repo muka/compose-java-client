@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.createnet.compose.exception.RecordsetException;
-import org.createnet.compose.recordset.RecordSet;
+import org.createnet.compose.object.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
+package org.createnet.compose.data;
 
 import java.util.Date;
 import org.createnet.compose.object.Channel;
@@ -27,7 +27,9 @@ abstract public class Record<E> implements IRecord<E> {
     protected Channel channel;
     protected E value;
     protected Date lastUpdate;
-
+    
+    protected RecordSet recordset;
+    
     @Override
     abstract public String getType();
     
@@ -57,12 +59,38 @@ abstract public class Record<E> implements IRecord<E> {
 
     @Override
     public Date getLastUpdate() {
+        
+        if(lastUpdate != null) {
+            return lastUpdate;
+        }
+        
+        if(recordset != null) {
+            return recordset.getLastUpdate();
+        }
+        
+        // force value
+        setLastUpdate(new Date());
         return lastUpdate;
+    }
+    
+    @Override
+    public Long getLastUpdateTime() {
+        return (Long)(getLastUpdate().getTime() / 1000);
     }
 
     @Override
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
-    
+
+    @Override
+    public RecordSet getRecordSet() {
+        return recordset;
+    }
+
+    @Override
+    public void setRecordSet(RecordSet recordset) {
+        this.recordset = recordset;
+    }
+
 }

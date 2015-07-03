@@ -15,6 +15,7 @@
  */
 package org.createnet.compose.object;
 
+import org.createnet.compose.data.ResultSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.createnet.compose.serializer.StreamSerializer;
 
@@ -29,8 +30,8 @@ import java.util.Map;
 import org.createnet.compose.exception.HttpException;
 import org.createnet.compose.exception.RecordsetException;
 import org.createnet.compose.exception.RestClientException;
-import org.createnet.compose.recordset.IRecord;
-import org.createnet.compose.recordset.RecordSet;
+import org.createnet.compose.data.IRecord;
+import org.createnet.compose.data.RecordSet;
 
 import org.slf4j.LoggerFactory;
 

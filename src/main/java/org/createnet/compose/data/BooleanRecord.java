@@ -13,41 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
+package org.createnet.compose.data;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
- */   
-public class NumberRecord extends Record<Long> {
+ */
+public class BooleanRecord extends Record<Boolean> {
     
-    protected Long value;
+    protected boolean value;
     
     @Override
-    public Long getValue() {
+    public String getType() {
+        return "boolean";
+    }
+    
+    @Override
+    public Boolean getValue() {
         return value;
     }
 
     @Override
-    public String getType() {
-        return "number";
-    }
-
-    @Override
     public void setValue(Object value) {
-        Long n = parseValue(value);
-        this.value = n;
+        this.value = parseValue(value);
     }
 
     @Override
-    public Long parseValue(Object value) {
+    public Boolean parseValue(Object value) {
         
-        if(value instanceof String){
-            return Long.parseLong((String)value);
-        }
-        
-        return (Long)value;
+        if(value instanceof String)
+            return Boolean.parseBoolean((String)value);
+
+        return (Boolean)value;
     }    
     
+    
 }
-

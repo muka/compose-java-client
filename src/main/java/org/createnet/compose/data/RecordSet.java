@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
+package org.createnet.compose.data;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,7 +65,7 @@ public class RecordSet {
         this.records = records;
         this.lastUpdate = date;
     }
-
+    
     public static IRecord createRecord(Stream stream, String key, Object value) {
 
         if (!stream.channels.isEmpty() && !stream.channels.containsKey(key)) {
@@ -139,10 +139,6 @@ public class RecordSet {
             return null;
         }
         
-        if(lastUpdate == null) {
-            lastUpdate = new Date();
-        }
-        
         Map<String, Object> channels = new HashMap<>();
         for (IRecord record : records) {
             
@@ -155,14 +151,21 @@ public class RecordSet {
         Map<String, Object> obj = new HashMap<>();
         obj.put("channels", channels);
         
-        obj.put("lastUpdate", (Long) lastUpdate.getTime() / 1000);
+        obj.put("lastUpdate", getLastUpdateTime());
 
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(obj);
     }
 
     public Date getLastUpdate() {
+        if(lastUpdate == null) {
+            setLastUpdate(new Date());
+        }
         return lastUpdate;
+    }
+
+    public Long getLastUpdateTime() {
+        return (Long) (getLastUpdate().getTime() / 1000);
     }
 
     public void setLastUpdate(Date lastUpdate) {
@@ -206,25 +209,29 @@ public class RecordSet {
             
             if(stream.channels != null && !stream.channels.isEmpty()) {
                 if (stream.channels.containsKey(channelName)) {
-        
-                    IRecord record = RecordSet.createRecord(stream, channelName, valObj.asText());
-                    if(record != null) {
-                        this.records.add(record);
-                    }
-
-                }            
+                    this.addRecord(stream, channelName, valObj.asText());
+                }
             }
             else {
                 // definition is unknown, add all channels to the record set
-                IRecord record = RecordSet.createRecord(stream, channelName, valObj.asText());
-                this.records.add(record);
-                
+                this.addRecord(stream, channelName, valObj.asText());
             }
             
         }
 
     }
 
+    protected IRecord addRecord(Stream stream, String channelName, Object value) {
+
+        IRecord record = RecordSet.createRecord(stream, channelName, value);
+        if(record != null) {
+            record.setRecordSet(this);
+            this.records.add(record);
+        }
+
+        return record;
+    }
+    
     /**
      * @param channelName 
      * @return IRecord

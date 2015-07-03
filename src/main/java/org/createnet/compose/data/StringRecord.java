@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.recordset;
+package org.createnet.compose.data;
 
 import java.util.Date;
 import org.createnet.compose.object.Channel;
-import org.createnet.compose.object.ResultSet;
 
 /**
  *
