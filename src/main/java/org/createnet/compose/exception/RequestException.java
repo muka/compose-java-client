@@ -15,17 +15,37 @@
  */
 package org.createnet.compose.exception;
 
-import com.mashape.unirest.http.exceptions.UnirestException;
-
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class RestClientException extends Exception
-{
+public class RequestException extends Exception {
 
-    public RestClientException(UnirestException ex) {
-        super("RestClientException", ex);
+    public int status;
+    public String statusText;
+    public String body;
+
+    public RequestException(int status, String statusText, String body) {
+        this.status = status;
+        this.statusText = statusText;
+        this.body = body;
+    }
+
+    @Override
+    public String toString() {
+        return "HTTP " + this.status + " - " + this.statusText;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public String getBody() {
+        return body;
     }
     
 }

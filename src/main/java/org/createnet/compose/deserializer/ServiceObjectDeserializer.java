@@ -20,10 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.IntNode;
 import java.io.IOException;
 import java.util.Iterator;
-import org.createnet.compose.Compose;
+import org.createnet.compose.object.Actuation;
 import org.createnet.compose.object.ServiceObject;
 import org.createnet.compose.object.Stream;
 
@@ -44,15 +43,15 @@ public class ServiceObjectDeserializer extends JsonDeserializer<ServiceObject> {
         serviceObject.name = tree.get("name").asText();
         serviceObject.description = tree.get("description").asText();
         
-        for (Iterator<JsonNode> iterator = tree.get("streams").iterator(); iterator.hasNext();) {
-            JsonNode jsonStream = iterator.next();
-            
+        for (JsonNode jsonStream : tree.get("streams")) {
             Stream stream = new Stream(jsonStream);
             serviceObject.streams.put(stream.name, stream);
         }
         
-        // todo: subscriptions
-        // todo: actuations
+        for (JsonNode json : tree.get("actuations")) {
+            Actuation actuation = new Actuation(json);
+            serviceObject.actuations.put(actuation.name, actuation);
+        }
         
         return serviceObject;
     }

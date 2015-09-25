@@ -39,6 +39,7 @@ abstract class StreamContainer extends ServiceObjectContainer
 
     public void setStream(Stream stream) {
         this.stream = stream;
+        this.setServiceObject(stream.getServiceObject());
     }
     
 }

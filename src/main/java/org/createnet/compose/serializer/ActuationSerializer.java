@@ -20,31 +20,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import org.createnet.compose.object.ServiceObject;
+import org.createnet.compose.object.Actuation;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class ServiceObjectSerializer extends JsonSerializer<ServiceObject> {
+public class ActuationSerializer extends JsonSerializer<Actuation> {
 
     @Override
-    public void serialize(ServiceObject t, JsonGenerator jg, SerializerProvider sp) throws IOException, JsonProcessingException {
+    public void serialize(Actuation t, JsonGenerator jg, SerializerProvider sp) throws IOException, JsonProcessingException {
 
         jg.writeStartObject();
         
-        jg.writeStringField("id", t.id);
+        if(t.id != null) {
+            jg.writeStringField("id", t.id);
+        }
+        if(t.status != null) {
+            jg.writeStringField("status", t.status);
+        }
+        
         jg.writeStringField("name", t.name);
         jg.writeStringField("description", t.description);
-        
-        if(!t.streams.isEmpty()) {
-            jg.writeObjectField("streams", t.streams);
-        }
-        
-        if(!t.actuations.isEmpty()) {
-            jg.writeObjectField("actuations", t.actuations);
-        }
-        
+
         jg.writeEndObject();
 
     }

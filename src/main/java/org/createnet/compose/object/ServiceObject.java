@@ -23,12 +23,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import org.createnet.compose.exception.HttpException;
-import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.events.ServiceObjectEvent;
+import org.createnet.compose.events.ServiceObjectEventListener;
+import org.createnet.compose.exception.RequestException;
+import org.createnet.compose.exception.ClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +41,11 @@ import org.slf4j.LoggerFactory;
  */
 @JsonSerialize(using = ServiceObjectSerializer.class)
 @JsonDeserialize(using = ServiceObjectDeserializer.class)
+
 public class ServiceObject extends ComposeContainer
 {
+    
+    protected ServiceObjectEventListener listener;
     
     Logger logger = LoggerFactory.getLogger(ServiceObject.class);
     
@@ -48,12 +54,16 @@ public class ServiceObject extends ComposeContainer
     public String name;
     public String description;
     
+    public Long createdAt;
+    public Long updatedAt;
+    
     public Map<String, Object> customFields;
     public Map<String, String> properties;
 
     public Map<String, Stream> streams;
     public Map<String, Subscription> subscriptions;
-//    public Map<Actuation> actuations;
+    public Map<String, Actuation> actuations;
+    
 
     public ServiceObject() {
         initialize();
@@ -71,38 +81,54 @@ public class ServiceObject extends ComposeContainer
         
         this.streams = new HashMap<>();
         this.subscriptions = new HashMap<>();
-//        this.actuations = new HashMap<>();
-    }
-
-    public String toJSON() {
+        this.actuations = new HashMap<>();
         
-        ObjectMapper mapper = new ObjectMapper();
-        String json = null;
-        try {
-            json = mapper.writeValueAsString(this);
-        } catch (JsonProcessingException ex) {
-            logger.error("Error converting to JSON", ex);
-        }
+        createdAt = System.currentTimeMillis();
+        updatedAt = System.currentTimeMillis();
         
-        return json;
+        addExtra("public", true);
     }
-    
+         
     @Override
     public String toString() {
         return "ServiceObject<"+ this.id +">";
     }
     
-    public ServiceObject load() throws HttpException, RestClientException, IOException {
+    public ServiceObject create() throws RequestException, ClientException {
+        if(hasListener()) getListener().onCreate(new ServiceObjectEvent(this));
+        return this.getContainer().createServiceObject(this);
+    }
+    
+    public ServiceObject load() throws RequestException, ClientException {
+        if(hasListener()) getListener().onLoad(new ServiceObjectEvent(this));
         return this.getContainer().load(id);
     }
     
-    public void delete() throws HttpException, RestClientException, IOException {
+    public void delete() throws RequestException, ClientException {
+        if(hasListener()) getListener().onDelete(new ServiceObjectEvent(this));
         this.getContainer().delete(id);
         this.id = null;
     }
     
-    public void update() throws HttpException, RestClientException, IOException {
+    public void update() throws RequestException, ClientException {
+        if(hasListener()) getListener().onUpdate(new ServiceObjectEvent(this));
         this.getContainer().update(id, this.toJSON());
+    }
+
+    public ServiceObjectEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(ServiceObjectEventListener listener) {
+        this.listener = listener;
+    }
+
+    protected boolean hasListener() {
+        return getListener() != null;
+    }
+
+    public String getId() {
+        return id;
     }
     
 }

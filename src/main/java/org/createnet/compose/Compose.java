@@ -16,17 +16,18 @@
 
 package org.createnet.compose;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.logging.Level;
+import org.createnet.compose.client.IClient;
+import org.createnet.compose.client.NoopClient;
 import org.createnet.compose.object.ServiceObject;
 import org.createnet.compose.client.RestClient;
-import org.createnet.compose.exception.HttpException;
-import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.exception.RequestException;
+import org.createnet.compose.exception.ClientException;
+import org.createnet.compose.object.Actuation;
 import org.createnet.compose.object.Channel;
 import org.createnet.compose.object.Stream;
 import org.slf4j.Logger;
@@ -40,44 +41,49 @@ public class Compose {
 
     Logger logger = LoggerFactory.getLogger(Compose.class);
     
+    protected final ObjectMapper mapper = new ObjectMapper();
+    
     protected String uri = "http://servioticy.com";
-    protected String apiKey;
-    protected RestClient client;
+    protected String apiKey = null;
+    protected IClient client;
     
     public Compose(String apiKey, String uri) {
         this.apiKey = apiKey;
         this.uri = uri;
+        setClient(new RestClient(apiKey, uri));
     }
     public Compose(String apiKey) {
         this.apiKey = apiKey;
+        setClient(new RestClient(apiKey, uri));
     }
     
-    public ServiceObject readDefinition(String json) throws IOException {
-        
-        ObjectMapper mapper = new ObjectMapper();
+    public Compose() {
+        setClient(new NoopClient());
+    }
 
-        ServiceObject s = mapper.readValue(json, ServiceObject.class);
+    public ServiceObject readDefinition(String json) throws ClientException {
         
-        return s;
-    }
-    
-    public ServiceObject load(String soid) throws HttpException, RestClientException, IOException {
-        
-        String response = this.getClient().get("/" + soid);
-        
-        ObjectMapper mapper = new ObjectMapper();
-        ServiceObject serviceObject = mapper.readValue(response, ServiceObject.class);
+        ServiceObject serviceObject;
+        try {
+            serviceObject = mapper.readValue(json, ServiceObject.class);
+        } catch (IOException ex) {
+            throw new ClientException(ex);
+        }
         
         serviceObject.setContainer(this);
-        
         return serviceObject;
     }
     
-    public void delete(String soid) throws HttpException, RestClientException, IOException {
+    public ServiceObject load(String soid) throws RequestException, ClientException {
+        String json = this.getClient().get("/" + soid);
+        return readDefinition(json);
+    }
+    
+    public void delete(String soid) throws RequestException, ClientException {
         this.getClient().delete("/" + soid);
     }
     
-    public void update(String soid, String definition) throws HttpException, RestClientException, IOException {
+    public void update(String soid, String definition) throws RequestException, ClientException {
         this.getClient().put("/" + soid, definition);
     }
     
@@ -89,12 +95,12 @@ public class Compose {
         return uri;
     }
     
-    public RestClient getClient() {
-        
-        if(client == null) {
-            client = new RestClient(apiKey, uri);
-        }
 
+    public void setClient(IClient client) {
+        this.client = client;
+    }
+    
+    public IClient getClient() {
         return client;
     }
 
@@ -123,19 +129,61 @@ public class Compose {
     }
     
     public Stream createStream(String soId, String streamName) {
-        ServiceObject so = createServiceObject(soId);
+        ServiceObject so = getServiceObject(soId);
         return createStream(so, streamName);
     }
+    
+    public Actuation createActuation(ServiceObject so, String actuationName) {
+    
+        Actuation actuation = new Actuation();
+        actuation.name = actuationName;
+    
+        actuation.setServiceObject(so);
+        actuation.setContainer(so.getContainer());
 
-    private ServiceObject createServiceObject(String soId) {
-        
+        return actuation;
+    }
+    
+    public Actuation createActuation(String soId, String actName) {
+        ServiceObject so = getServiceObject(soId);
+        return createActuation(so, actName);
+    }
+
+    public ServiceObject getServiceObject() {
+        return getServiceObject(null);
+    }
+    
+    public ServiceObject getServiceObject(String soid) {
+        ServiceObject serviceObject = new ServiceObject(soid);
+        serviceObject.setContainer(this);
+        return serviceObject;
+    }
+
+    public ServiceObject createServiceObject(String soId) throws ClientException, RequestException {
         ServiceObject serviceObject = new ServiceObject(soId);
         serviceObject.setContainer(this);
+        return createServiceObject(serviceObject);
+    }
+    
+    public ServiceObject createServiceObject(ServiceObject serviceObject) throws ClientException, RequestException {
         
+        String json;
+        json = this.getClient().post("/", serviceObject.toJSON());
+        
+        JsonNode tree;
+        try {
+            tree = mapper.readTree(json);
+        } catch (IOException ex) {
+            throw new ClientException(ex);
+        }
+        
+        serviceObject.id = tree.get("id").toString();
+        serviceObject.createdAt = tree.get("createdAt").asLong();
+
         return serviceObject;
     }
     
-    public static void main(String[] args) throws HttpException, RestClientException, IOException {
+    public static void main(String[] args) throws RequestException, ClientException, IOException {
         
         Logger logger2 = LoggerFactory.getLogger(Compose.class);
         
@@ -154,6 +202,6 @@ public class Compose {
         logger2.info(so2.toJSON());
         
     }
-   
+  
     
 }

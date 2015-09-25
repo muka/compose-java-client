@@ -19,33 +19,11 @@ package org.createnet.compose.exception;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class HttpException extends Exception {
+public class ProcessingException extends Exception
+{
 
-    public int status;
-    public String statusText;
-    public String body;
-
-    public HttpException(int status, String statusText, String body) {
-        this.status = status;
-        this.statusText = statusText;
-        this.body = body;
-    }
-
-    @Override
-    public String toString() {
-        return "HTTP " + this.status + " - " + this.statusText;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public String getStatusText() {
-        return statusText;
-    }
-
-    public String getBody() {
-        return body;
+    public ProcessingException(Exception ex) {
+        super("ProcessingException", ex);
     }
     
 }

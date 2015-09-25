@@ -16,11 +16,79 @@
 
 package org.createnet.compose.object;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Subscription extends ComposeContainer
+public class Subscription extends StreamContainer
 {
+
+    org.slf4j.Logger logger = LoggerFactory.getLogger(Subscription.class);    
+
+    public String id;
+    public String type;
+    public String callback;
+    public String destination;
+    public String source;
+    public String updatedAt;
+    public String createdAt;
+    public String expire;
+
+    public Subscription(String json, Stream stream) throws IOException {
+        initialize();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode tree = mapper.readTree(json);
+        parse(tree, stream);
+    }
+
+    public Subscription(JsonNode json, Stream stream) {
+        initialize();
+        parse(json, stream);
+    }
+    
+    public Subscription(String json) throws IOException {
+        initialize();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode tree = mapper.readTree(json);
+        parse(tree, null);
+    }
+
+    public Subscription(JsonNode json) {
+        initialize();
+        parse(json, null);
+    }
+    
+    public Subscription() {
+        initialize();
+    }
+    
+    protected void initialize() {}
+    
+    protected void parse(JsonNode json, Stream stream) {
+        
+        if(stream != null)
+            this.setStream(stream);
+        
+        id = json.get("id").asText();
+        type = json.get("type").asText();
+        callback = json.get("callback").asText();
+        destination = json.get("destination").asText();
+        source = json.get("source").asText();
+        createdAt = json.get("createdAt").asText();
+        updatedAt = json.get("updatedAt").asText();
+        expire = json.get("expire").asText();
+        
+    }
+    
+    /**
+     * @TODO add subscriptions methods
+     */
     
 }

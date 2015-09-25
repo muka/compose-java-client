@@ -27,11 +27,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.createnet.compose.exception.HttpException;
+import org.createnet.compose.exception.RequestException;
 import org.createnet.compose.exception.RecordsetException;
-import org.createnet.compose.exception.RestClientException;
+import org.createnet.compose.exception.ClientException;
 import org.createnet.compose.data.IRecord;
 import org.createnet.compose.data.RecordSet;
+import org.createnet.compose.events.StreamEvent;
+import org.createnet.compose.events.StreamEventListener;
 
 import org.slf4j.LoggerFactory;
 
@@ -50,16 +52,30 @@ public class Stream extends ServiceObjectContainer {
     
     public Map<String, Channel> channels;
     
+    private StreamEventListener listener;
+    
+    public Stream(String json, ServiceObject object) throws IOException {
+        initialize();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode tree = mapper.readTree(json);
+        parse(tree, object);
+    }
+
+    public Stream(JsonNode json, ServiceObject object) {
+        initialize();
+        parse(json, object);
+    }
+    
     public Stream(String json) throws IOException {
         initialize();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode tree = mapper.readTree(json);
-        parse(tree);
+        parse(tree, null);
     }
 
     public Stream(JsonNode json) {
         initialize();
-        parse(json);
+        parse(json, null);
     }
     
     public Stream() {
@@ -70,9 +86,9 @@ public class Stream extends ServiceObjectContainer {
         channels = new HashMap<>();
     }
     
-    protected void parse(JsonNode json) {
+    protected void parse(JsonNode json, ServiceObject object) {
         
-        initialize();
+        this.setServiceObject(object);
         
         name = json.get("name").asText();
         type = json.get("type").asText();
@@ -92,22 +108,23 @@ public class Stream extends ServiceObjectContainer {
     /**
      *
      * @param dataset
-     * @throws HttpException
-     * @throws RestClientException
+     * @throws RequestException
+     * @throws ClientException
+     * @throws com.fasterxml.jackson.core.JsonProcessingException
      */
-    public void push(HashMap<String, Object> dataset) throws HttpException, RestClientException {
-        push(dataset);
+    public void push(HashMap<String, Object> dataset) throws RequestException, ClientException, JsonProcessingException {
+        push(dataset, new Date());
     }
     
     /**
      *
      * @param dataset
      * @param lastUpdate
-     * @throws HttpException
-     * @throws RestClientException
+     * @throws RequestException
+     * @throws ClientException
      * @throws com.fasterxml.jackson.core.JsonProcessingException
      */
-    public void push(HashMap<String, Object> dataset, Date lastUpdate) throws HttpException, RestClientException, JsonProcessingException {
+    public void push(HashMap<String, Object> dataset, Date lastUpdate) throws RequestException, ClientException, JsonProcessingException {
         
         ArrayList<IRecord> records = new ArrayList<>();
         
@@ -129,10 +146,10 @@ public class Stream extends ServiceObjectContainer {
     /**
      *
      * @param dataset
-     * @throws HttpException
-     * @throws RestClientException
+     * @throws RequestException
+     * @throws ClientException
      */
-    public void push(ArrayList<IRecord> dataset) throws HttpException, RestClientException, JsonProcessingException {
+    public void push(ArrayList<IRecord> dataset) throws RequestException, ClientException, JsonProcessingException {
         push(dataset, new Date());
     }
 
@@ -140,15 +157,16 @@ public class Stream extends ServiceObjectContainer {
      *
      * @param dataset
      * @param lastUpdate
-     * @throws HttpException
-     * @throws RestClientException
+     * @throws RequestException
+     * @throws ClientException
+     * @throws com.fasterxml.jackson.core.JsonProcessingException
      */
-    public void push(ArrayList<IRecord> dataset, Date lastUpdate) throws HttpException, RestClientException, JsonProcessingException {
+    public void push(ArrayList<IRecord> dataset, Date lastUpdate) throws RequestException, ClientException, JsonProcessingException {
         RecordSet records = new RecordSet(dataset, lastUpdate);
         push(records);
     }
         
-    public void push(RecordSet records) throws HttpException, RestClientException, JsonProcessingException {
+    public void push(RecordSet records) throws RequestException, ClientException, JsonProcessingException {
         
         String path = "/" + this.getServiceObject().id + "/streams/" + this.name;
         
@@ -156,16 +174,32 @@ public class Stream extends ServiceObjectContainer {
         this.getContainer().getClient().put(path, json);
     }
     
-    public ResultSet pull() throws HttpException, RestClientException, RecordsetException {
+    public ResultSet pull() throws RequestException, ClientException, RecordsetException {
         return pull(false);
     }
 
-    public ResultSet pull(boolean lastUpdate) throws HttpException, RestClientException, RecordsetException {
+    public ResultSet pull(boolean lastUpdate) throws RequestException, ClientException, RecordsetException {
 
         String path = "/" + this.getServiceObject().id + "/streams/" + this.name + ( lastUpdate ? "/lastUpdate" : "" );
         String response = this.getContainer().getClient().get(path);
-
-        return new ResultSet(this, response);
+        
+        ResultSet resultset = new ResultSet(this, response);
+        
+        if(hasListener())getListener().onPull(new StreamEvent(this, resultset));
+        
+        return resultset;
     }
 
+    public StreamEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(StreamEventListener listener) {
+        this.listener = listener;
+    }
+
+    protected boolean hasListener() {
+        return getListener() != null;
+    }
+    
 }

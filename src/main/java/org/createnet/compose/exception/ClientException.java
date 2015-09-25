@@ -13,32 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.createnet.compose.Compose;
+package org.createnet.compose.exception;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-abstract class ServiceObjectContainer extends ComposeContainer {
-    
-    @JsonBackReference
-    protected ServiceObject serviceObject;
+public class ClientException extends Exception
+{
 
-    @Override
-    public Compose getContainer() {
-        return getServiceObject().getContainer();
-    }
-    
-    public void setServiceObject(ServiceObject serviceObject) {
-        this.serviceObject = serviceObject;
-        this.setContainer(serviceObject.getContainer());
-    }
-
-    public ServiceObject getServiceObject() {
-        return serviceObject;
+    public ClientException(Exception ex) {
+        super("ClientException", ex);
     }
     
 }

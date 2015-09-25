@@ -16,9 +16,17 @@
 package org.createnet.compose.object;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.createnet.compose.client.RestClient;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.createnet.compose.Compose;
+import org.createnet.compose.client.IClient;
+import org.createnet.compose.exception.ClientException;
 
 /**
  *
@@ -26,6 +34,11 @@ import org.createnet.compose.Compose;
  */
 abstract class ComposeContainer {
     
+    protected final ObjectMapper mapper = new ObjectMapper();    
+    
+    @JsonBackReference
+    protected Map<String, Object> extras = new HashMap<>();
+
     @JsonBackReference
     protected Compose container;
 
@@ -38,8 +51,36 @@ abstract class ComposeContainer {
     }
     
     @JsonBackReference
-    public RestClient getClient() {
+    public IClient getClient() {
         return getContainer().getClient();
+    }
+    
+    public void setClient(IClient client) {
+        getContainer().setClient(client);
+    }
+    
+    public Map getExtras() {
+        return extras;
+    }
+    
+    public void addExtra(String key, Object val) {
+        extras.put(key, val);
+    }
+
+    public ObjectNode toJsonNode() {
+        ObjectNode node = mapper.convertValue(this, ObjectNode.class);
+        node.putAll(getExtras());
+        return node;
+    }
+    
+    public String toJSON() throws ClientException {
+        String json = null;
+        try {
+            json = mapper.writeValueAsString(this.toJsonNode());
+        } catch (JsonProcessingException ex) {
+            throw new ClientException(ex);
+        }
+        return json;
     }
     
 }
