@@ -5,7 +5,7 @@
  */
 package org.createnet.compose.events;
 
-import org.createnet.compose.object.Actuation;
+import org.createnet.compose.objects.Actuation;
 
 /**
  *

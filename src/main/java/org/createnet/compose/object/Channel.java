@@ -15,26 +15,11 @@
  */
 package org.createnet.compose.object;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends StreamContainer 
+public class Channel extends org.createnet.compose.objects.Channel
 {
-    
-    public String name;
-    public String type;
-    public String unit;
-
-    public Channel() {
-    }
-    
-    public Channel(JsonNode json) {
-        name = json.get("name").asText();
-        type = json.get("type").asText();
-        unit = json.get("unit").asText();
-    }
     
 }

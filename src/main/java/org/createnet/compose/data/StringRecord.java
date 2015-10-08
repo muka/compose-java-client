@@ -16,7 +16,7 @@
 package org.createnet.compose.data;
 
 import java.util.Date;
-import org.createnet.compose.object.Channel;
+import org.createnet.compose.objects.Channel;
 
 /**
  *

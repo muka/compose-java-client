@@ -16,14 +16,12 @@
 package org.createnet.compose.client;
 
 import java.util.Map;
-import org.createnet.compose.exception.RequestException;
-import org.createnet.compose.exception.ClientException;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class NoopClient implements IClient {
+public class NoopClient implements org.createnet.compose.objects.client.IClient {
 
     protected String apiKey;
     protected String uri = "http://servioticy.com";
@@ -32,38 +30,39 @@ public class NoopClient implements IClient {
     }
 
     @Override
-    public String post(String path, String body, Map<String, String> headers) throws ClientException, RequestException {
-        return null;
-    }
-    
-    @Override
-    public String post(String path, String body) throws ClientException, RequestException {
-        return null;
-    }
-
-    @Override
-    public String put(String path, String body) throws RequestException, ClientException {
-        return null;
-    }
-
-    @Override
-    public String put(String path, String body, Map<String, String> headers) throws RequestException, ClientException {
-        return null;
-    }
-
-    @Override
-    public String delete(String path) throws RequestException, ClientException {
-        return null;
-    }
-
-    @Override
-    public String get(String path) throws RequestException, ClientException {
-        return null;
-    }
+    public void open(Config config) {}
 
     @Override
     public void close() {}
 
     @Override
-    public void open() {}
+    public Result create(Subject subj) {
+        return new Result();
+    }
+
+    @Override
+    public Result update(Subject subj) {
+        return new Result();
+    }
+
+    @Override
+    public Result load(Subject subj) {
+        return new Result();
+    }
+
+    @Override
+    public Result delete(Subject subj) {
+        return new Result();
+    }
+
+    @Override
+    public Result list(Subject subj) {
+        return new Result();
+    }
+
+    @Override
+    public Result status(Subject subj, String payload, Map extras) {
+        return new Result();
+    }
+
 }

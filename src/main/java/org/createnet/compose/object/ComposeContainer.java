@@ -15,6 +15,7 @@
  */
 package org.createnet.compose.object;
 
+import org.createnet.compose.objects.ComposeComponent;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,7 +33,7 @@ import org.createnet.compose.exception.ClientException;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-abstract class ComposeContainer {
+abstract class ComposeContainer implements ComposeComponent {
     
     protected final ObjectMapper mapper = new ObjectMapper();    
     

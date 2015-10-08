@@ -16,20 +16,18 @@
 
 package org.createnet.compose;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.logging.Level;
 import org.createnet.compose.client.IClient;
-import org.createnet.compose.client.NoopClient;
-import org.createnet.compose.object.ServiceObject;
+import org.createnet.compose.objects.ServiceObject;
 import org.createnet.compose.client.RestClient;
 import org.createnet.compose.exception.RequestException;
 import org.createnet.compose.exception.ClientException;
-import org.createnet.compose.object.Actuation;
-import org.createnet.compose.object.Channel;
-import org.createnet.compose.object.Stream;
+import org.createnet.compose.objects.Actuation;
+import org.createnet.compose.objects.Channel;
+import org.createnet.compose.objects.ComposeComponent;
+import org.createnet.compose.objects.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,27 +44,13 @@ public class Compose {
     protected String uri = "http://servioticy.com";
     protected String apiKey = null;
     protected IClient client;
-    
-    public Compose(String apiKey, String uri) {
-        this.apiKey = apiKey;
-        this.uri = uri;
-        setClient(new RestClient(apiKey, uri));
-    }
-    public Compose(String apiKey) {
-        this.apiKey = apiKey;
-        setClient(new RestClient(apiKey, uri));
-    }
-    
-    public Compose() {
-        setClient(new NoopClient());
-    }
 
     public ServiceObject readDefinition(String json) throws ClientException {
         
-        ServiceObject serviceObject;
+        ServiceObject serviceObject = new ServiceObject();
         try {
-            serviceObject = mapper.readValue(json, ServiceObject.class);
-        } catch (IOException ex) {
+            serviceObject.parse(json);
+        } catch (ComposeComponent.ParserException ex) {
             throw new ClientException(ex);
         }
         
@@ -74,17 +58,24 @@ public class Compose {
         return serviceObject;
     }
     
-    public ServiceObject load(String soid) throws RequestException, ClientException {
-        String json = this.getClient().get("/" + soid);
-        return readDefinition(json);
+    public ServiceObject load(String soid) throws ClientException {
+        return (new ServiceObject(soid)).load();
     }
     
-    public void delete(String soid) throws RequestException, ClientException {
-        this.getClient().delete("/" + soid);
+    public void delete(String soid) throws ClientException {
+        (new ServiceObject(soid)).delete();
     }
     
-    public void update(String soid, String definition) throws RequestException, ClientException {
-        this.getClient().put("/" + soid, definition);
+    public void update(String soid, String definition) throws ClientException {
+        
+        ServiceObject so = readDefinition(definition);
+        so.id = soid;
+        
+        try {
+            so.update();
+        } catch (RequestException ex) {
+            throw new ClientException(ex);
+        }
     }
     
     public String getApiKey() {
@@ -103,7 +94,7 @@ public class Compose {
     public IClient getClient() {
         return client;
     }
-
+    
     public Channel createChannel(String soId, String streamName, String channelName) {
         Stream stream = createStream(soId, streamName);
         return createChannel(stream, channelName);
@@ -167,8 +158,8 @@ public class Compose {
     
     public ServiceObject createServiceObject(ServiceObject serviceObject) throws ClientException, RequestException {
         
-        String json;
-        json = this.getClient().post("/", serviceObject.toJSON());
+        IClient.Result res = this.getClient().create(new IClient.Subject(serviceObject));
+        String json = res.getContent();
         
         JsonNode tree;
         try {
@@ -191,7 +182,8 @@ public class Compose {
         String uri = "http://servioticy.local";
         String soid = "1435572526142849de35ba51e46939f62d5b1f28d71a1";
 
-        Compose compose = new Compose(apiKey, uri);
+        Compose compose = new Compose();
+        compose.setClient(new RestClient(apiKey, uri));
         
         ServiceObject so = compose.load(soid);
         

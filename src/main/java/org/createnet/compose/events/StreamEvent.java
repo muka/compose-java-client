@@ -6,7 +6,7 @@
 package org.createnet.compose.events;
 
 import org.createnet.compose.data.ResultSet;
-import org.createnet.compose.object.Stream;
+import org.createnet.compose.objects.Stream;
 
 /**
  *

@@ -15,10 +15,9 @@
  */
 package org.createnet.compose.object;
 
-import org.createnet.compose.serializer.ActuationSerializer;
+import org.createnet.compose.objects.serializer.ActuationSerializer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,77 +26,28 @@ import org.createnet.compose.events.ActuationEvent;
 import org.createnet.compose.events.ActuationEventListener;
 import org.createnet.compose.exception.RequestException;
 import org.createnet.compose.exception.ClientException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.createnet.compose.objects.client.IClient;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
 @JsonSerialize(using = ActuationSerializer.class)
-public class Actuation extends ServiceObjectContainer {
-    
+public class Actuation extends org.createnet.compose.objects.Actuation {
+       
     protected ActuationEventListener listener;
     
-    Logger logger = LoggerFactory.getLogger(Actuation.class);    
-    
-    public String id = null;
-    public String status = null;
-    public String name;
-    public String description;
-    
-    public Map<String, Channel> channels;
-    
-    public Actuation(String json) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode tree = mapper.readTree(json);
-        parse(tree, null);
-    }
-    
-    public Actuation(String json, ServiceObject object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode tree = mapper.readTree(json);
-        parse(tree, object);
-    }
-
-    public Actuation(JsonNode json, ServiceObject object) {
-        parse(json, object);
-    }
-    
-    public Actuation(JsonNode json) {
-        parse(json, null);
-    }
-    
-    public Actuation() {}
-    
-    protected void parse(JsonNode json, ServiceObject object) {
+    public String status() throws IOException {
         
-        this.setServiceObject(object);
+        IClient.Result result = this.getContainer().getClient().load(new IClient.Subject(this));
+        String response = result.getContent();
         
-        if(json.has("id")) {
-            id = json.get("id").asText();
-        }
-
-        if(json.has("status")) {
-            status = json.get("status").asText();
-        }
-        
-        name = json.get("name").asText();
-        description = json.get("description").asText();
-    }
-    
-    public String status() throws RequestException, ClientException, IOException {
-        
-        String response = this.getContainer().getClient().get("/actuations/" + this.id);
-        
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode json = mapper.readTree(response);
-        
         String status = json.get("status").toString();
         
         if(hasListener()) getListener().onStatus(new ActuationEvent(this, status));
-        
-        return status;
+         
+       return status;
     }
     
     public String status(String payload) throws RequestException, ClientException, IOException {
@@ -107,13 +57,14 @@ public class Actuation extends ServiceObjectContainer {
         headers.put("Content-Type", "text/plain");
         headers.put("accept", "text/plain");
         
-        String response = this.getContainer().getClient().put("/actuations/" + this.id, payload, headers);
+        IClient.Subject subj = new IClient.Subject(this);
         
-        ObjectMapper mapper = new ObjectMapper();
+        IClient.Result res = this.getContainer().getClient().status(subj, payload, headers);
+        String response = res.getContent();
+        
         JsonNode json = mapper.readTree(response);
-        
         String status = json.get("status").toString();
-        
+
         if(hasListener()) getListener().onStatus(new ActuationEvent(this, status));
         
         return status;
@@ -129,6 +80,20 @@ public class Actuation extends ServiceObjectContainer {
 
     protected boolean hasListener() {
         return getListener() != null;
+    }
+
+    @Override
+    public void validate() throws ValidationException {
+        throw new ValidationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void parse(String json) throws ParserException {
+        try {
+            parse(mapper.readTree(json));
+        } catch (IOException ex) {
+            throw new ParserException(ex);
+        }
     }
         
 }

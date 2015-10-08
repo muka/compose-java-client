@@ -15,6 +15,8 @@
  */
 package org.createnet.compose.object;
 
+import org.createnet.compose.objects.ServiceObjectContainer;
+import org.createnet.compose.objects.Stream;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.createnet.compose.Compose;
 

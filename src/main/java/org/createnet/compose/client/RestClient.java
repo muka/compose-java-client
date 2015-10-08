@@ -23,7 +23,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.createnet.compose.exception.RequestException;
-import org.createnet.compose.exception.ClientException;
+import org.createnet.compose.objects.ComposeComponent;
+import org.createnet.compose.objects.client.IClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author Luca Capra <luca.capra@gmail.com>
  */
 public class RestClient implements IClient {
-
+    
     Logger logger = LoggerFactory.getLogger(RestClient.class);
 
     protected String apiKey;
@@ -65,79 +66,53 @@ public class RestClient implements IClient {
         return response.getBody();
     }
 
-    @Override
-    public String post(String path, String body, Map<String, String> headers) throws ClientException, RequestException {
-        try {
-            
-            HttpRequestWithBody req = Unirest.post(this.uri + path);
-            
-            if(headers.size() > 0) {
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    req.header(entry.getKey(), entry.getValue());
-                }
+    public String post(String path, String body, Map<String, String> headers) throws UnirestException, RequestException {
+
+        HttpRequestWithBody req = Unirest.post(this.uri + path);
+
+        if(headers.size() > 0) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                req.header(entry.getKey(), entry.getValue());
             }
-            
-            return getBody(req.body(body).asString());
-            
-        } catch (UnirestException ex) {
-            logger.error("Client exception", ex);
-            throw new ClientException(ex);
-        } catch (RequestException ex) {
-            logger.error("Error during request", ex);
-            throw ex;
         }
+
+        return getBody(req.body(body).asString());
     }
     
-    @Override
-    public String post(String path, String body) throws ClientException, RequestException {
+    public String post(String path, String body) throws UnirestException, RequestException {
         return post(path, body, new HashMap<String, String>());
     }
 
-    @Override
-    public String put(String path, String body) throws RequestException, ClientException {
+    public String put(String path, String body) throws UnirestException, RequestException {
         return put(path, body, new HashMap<String, String>());
     }
 
-    @Override
-    public String put(String path, String body, Map<String, String> headers) throws RequestException, ClientException {
-        try {
-            
-            HttpRequestWithBody req = Unirest.put(this.uri + path);
-            
-            if(headers.size() > 0) {
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    req.header(entry.getKey(), entry.getValue());
-                }
+    public String put(String path, String body, Map<String, String> headers) throws UnirestException, RequestException {
+        
+        HttpRequestWithBody req = Unirest.put(this.uri + path);
+
+        if(headers.size() > 0) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                req.header(entry.getKey(), entry.getValue());
             }
-            
-            return getBody(req.body(body).asString());
-            
-        } catch (UnirestException ex) {
-            logger.error("Error during request", ex);
-            throw new ClientException(ex);
         }
+
+        return getBody(req.body(body).asString());
+
     }
 
-    @Override
-    public String delete(String path) throws RequestException, ClientException {
-        try {
-            return getBody(Unirest.delete(this.uri + path).asString());
-        } catch (UnirestException ex) {
-            logger.error("Error during request", ex);
-            throw new ClientException(ex);
-        }
+    public String delete(String path) throws RequestException, UnirestException  {
+        return getBody(Unirest.delete(this.uri + path).asString());
     }
 
-    @Override
-    public String get(String path) throws RequestException, ClientException {
-        try {
-            return getBody(Unirest.get(this.uri + path).asString());
-        } catch (UnirestException ex) {
-            logger.error("Error during request", ex);
-            throw new ClientException(ex);
-        }
+    public String get(String path) throws RequestException, UnirestException {
+        return getBody(Unirest.get(this.uri + path).asString());
     }
 
+    private Result notImplemented() {
+        return new Result(new Exception("Not Implemented"));
+    }
+    
     @Override
     public void close() {
         try {
@@ -148,5 +123,131 @@ public class RestClient implements IClient {
     }
 
     @Override
-    public void open() {}
+    public void open(Config config) {
+    }
+
+    @Override
+    public Result create(Subject subj) {
+        
+        if(subj.hasServiceObject()) {
+            try {                
+                String content = this.post("/", subj.getServiceObject().toJSON());
+                return new IClient.Result(content);
+            } catch (ComposeComponent.ParserException | RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        return notImplemented();
+    }
+
+    @Override
+    public Result update(Subject subj) {
+        
+        if(subj.hasServiceObject()) {
+            try {
+                String content = put("/" + subj.getServiceObject().id, subj.getServiceObject().toJSON());
+                return new Result(content);
+            } catch (ComposeComponent.ParserException | RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+
+        if(subj.hasStream()) {
+            try {                
+                
+                String path = "/" + subj.getStream().getServiceObject().id + "/streams/" + subj.getStream().name;
+                String json = subj.getContent();
+                String content = put(path, json);
+                
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }        
+        
+        return notImplemented();
+    }
+
+    @Override
+    public Result load(Subject subj) {
+        
+        if(subj.hasServiceObject()) {
+            try {
+                String content = get("/" + subj.getServiceObject().id);
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        if(subj.hasStream()) {
+            try {
+                String path = "/" + subj.getStream().getServiceObject().id + "/streams/" + subj.getStream().name;
+                if(subj.getExtras().containsKey("lastUpdate")) {
+                    path += "lastUpdate";
+                }
+                String content = get(path);
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        if(subj.hasActuation()) {
+            try {
+                String content = get("/actuations/" + subj.getServiceObject().id);
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        return notImplemented();
+    }
+
+    @Override
+    public Result delete(Subject subj) {
+        
+        if(subj.hasServiceObject()) {
+            try {
+                delete("/" + subj.getServiceObject().id);
+                return new Result();
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        return notImplemented();
+    }
+
+    @Override
+    public Result list(Subject subj){
+        
+        if(subj.hasServiceObject()) {
+            try {
+                String content = get("/");
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+        
+        return notImplemented();
+    }
+
+    @Override
+    public Result status(Subject subj, String payload, Map extras){
+        
+        if(subj.hasActuation()) {
+            try {
+                String content = put("/actuations/" + subj.getActuation().id, payload, extras);
+                return new Result(content);
+            } catch (RequestException | UnirestException ex) {
+                return new Result(ex);
+            }
+        }
+
+        return notImplemented();
+    }
 }

@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.createnet.compose.exception.RecordsetException;
-import org.createnet.compose.object.Channel;
-import org.createnet.compose.object.Stream;
+import org.createnet.compose.objects.Channel;
+import org.createnet.compose.objects.Stream;
 
 /**
  *

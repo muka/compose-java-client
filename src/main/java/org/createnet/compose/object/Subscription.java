@@ -16,19 +16,21 @@
 
 package org.createnet.compose.object;
 
+import org.createnet.compose.objects.StreamContainer;
+import org.createnet.compose.objects.Subscription;
+import org.createnet.compose.objects.Stream;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.createnet.compose.client.IClient;
 import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Subscription extends StreamContainer
-{
+public class Subscription extends StreamContainer {
 
     org.slf4j.Logger logger = LoggerFactory.getLogger(Subscription.class);    
 
@@ -43,7 +45,6 @@ public class Subscription extends StreamContainer
 
     public Subscription(String json, Stream stream) throws IOException {
         initialize();
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode tree = mapper.readTree(json);
         parse(tree, stream);
     }
@@ -55,7 +56,6 @@ public class Subscription extends StreamContainer
     
     public Subscription(String json) throws IOException {
         initialize();
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode tree = mapper.readTree(json);
         parse(tree, null);
     }
@@ -71,10 +71,21 @@ public class Subscription extends StreamContainer
     
     protected void initialize() {}
     
+    public void parse(String raw) throws ParserException {
+        try {
+            parse(mapper.readTree(raw));
+        } catch (IOException ex) {
+            throw new ParserException(ex);
+        }
+    }
+    
     protected void parse(JsonNode json, Stream stream) {
-        
-        if(stream != null)
+        if(stream != null) 
             this.setStream(stream);
+        parse(json);
+    }
+    
+    protected void parse(JsonNode json) {
         
         id = json.get("id").asText();
         type = json.get("type").asText();
@@ -90,5 +101,23 @@ public class Subscription extends StreamContainer
     /**
      * @TODO add subscriptions methods
      */
+    
+    
+    public Subscription load() {
+        
+        IClient.Result res = this.getClient().load(new IClient.Subject(this));
+        try {
+            parse(res.getContent());
+        } catch (ParserException ex) {
+            logger.error("Cannot parse response", ex);
+        }
+
+        return this;
+    }
+
+    @Override
+    public void validate() throws ValidationException {
+        throw new ValidationException("Not implemented");
+    }
     
 }

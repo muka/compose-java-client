@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.createnet.compose.exception.RecordsetException;
-import org.createnet.compose.object.Stream;
+import org.createnet.compose.objects.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

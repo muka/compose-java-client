@@ -15,12 +15,10 @@
  */
 package org.createnet.compose.object;
 
-import org.createnet.compose.data.ResultSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.createnet.compose.serializer.StreamSerializer;
-
+import org.createnet.compose.objects.serializer.StreamSerializer;
+import org.createnet.compose.data.ResultSet;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +54,6 @@ public class Stream extends ServiceObjectContainer {
     
     public Stream(String json, ServiceObject object) throws IOException {
         initialize();
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode tree = mapper.readTree(json);
         parse(tree, object);
     }
@@ -68,7 +65,6 @@ public class Stream extends ServiceObjectContainer {
     
     public Stream(String json) throws IOException {
         initialize();
-        ObjectMapper mapper = new ObjectMapper();
         JsonNode tree = mapper.readTree(json);
         parse(tree, null);
     }
@@ -87,8 +83,11 @@ public class Stream extends ServiceObjectContainer {
     }
     
     protected void parse(JsonNode json, ServiceObject object) {
-        
         this.setServiceObject(object);
+        parse(json);
+    }
+    
+    protected void parse(JsonNode json) {
         
         name = json.get("name").asText();
         type = json.get("type").asText();
@@ -104,6 +103,16 @@ public class Stream extends ServiceObjectContainer {
         }
         
     }
+    
+    @Override
+    public void parse(String json) throws ParserException {
+        try {
+            parse(mapper.readTree(json));
+        } catch (IOException ex) {
+            throw new ParserException(ex);
+        }
+    }
+    
     
     /**
      *
@@ -166,12 +175,12 @@ public class Stream extends ServiceObjectContainer {
         push(records);
     }
         
-    public void push(RecordSet records) throws RequestException, ClientException, JsonProcessingException {
+    public void push(RecordSet records) throws RequestException, ClientException, JsonProcessingException {      
         
-        String path = "/" + this.getServiceObject().id + "/streams/" + this.name;
-        
-        String json = records.toJSON();
-        this.getContainer().getClient().put(path, json);
+        IClient.Subject subj = new IClient.Subject(this);
+        subj.setPayload(records.toJSON());
+
+        this.getContainer().getClient().update(subj);
     }
     
     public ResultSet pull() throws RequestException, ClientException, RecordsetException {
@@ -180,10 +189,12 @@ public class Stream extends ServiceObjectContainer {
 
     public ResultSet pull(boolean lastUpdate) throws RequestException, ClientException, RecordsetException {
 
-        String path = "/" + this.getServiceObject().id + "/streams/" + this.name + ( lastUpdate ? "/lastUpdate" : "" );
-        String response = this.getContainer().getClient().get(path);
+        IClient.Subject subj = new IClient.Subject(this);
+        subj.getExtras().put("lastUpdate", lastUpdate);
+
+        IClient.Result res = this.getContainer().getClient().load(subj);        
         
-        ResultSet resultset = new ResultSet(this, response);
+        ResultSet resultset = new ResultSet(this, res.getContent());
         
         if(hasListener())getListener().onPull(new StreamEvent(this, resultset));
         
@@ -200,6 +211,11 @@ public class Stream extends ServiceObjectContainer {
 
     protected boolean hasListener() {
         return getListener() != null;
+    }
+
+    @Override
+    public void validate() throws ValidationException {
+        throw new ValidationException("Not implemented yet."); 
     }
     
 }
