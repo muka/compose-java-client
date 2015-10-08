@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.objects;
+
+import org.createnet.compose.client.IClient;
 
 /**
  *
@@ -36,6 +38,7 @@ public interface ComposeComponent {
         }
     
     }
+
     public class ParserException extends Exception {
 
         public ParserException(String message, Throwable cause) {
@@ -49,10 +52,6 @@ public interface ComposeComponent {
         public ParserException(Throwable cause) {
             super(cause);
         }
-        
     }
-    
-    public void validate() throws ValidationException;
-    public void parse(String json) throws ParserException;
     
 }

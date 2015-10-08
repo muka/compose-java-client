@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Compose {
+public class Compose implements ComposeComponent {
 
     Logger logger = LoggerFactory.getLogger(Compose.class);
     
@@ -194,6 +194,5 @@ public class Compose {
         logger2.info(so2.toJSON());
         
     }
-  
     
 }

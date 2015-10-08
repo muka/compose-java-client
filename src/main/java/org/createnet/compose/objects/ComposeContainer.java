@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.objects;
 
-import org.createnet.compose.objects.ComposeComponent;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.createnet.compose.Compose;
 import org.createnet.compose.client.IClient;
-import org.createnet.compose.exception.ClientException;
 
 /**
  *
@@ -35,51 +29,52 @@ import org.createnet.compose.exception.ClientException;
  */
 abstract class ComposeContainer implements ComposeComponent {
     
+    abstract public void validate() throws ValidationException;
+    abstract public void parse(String json) throws ParserException;    
+    
     protected final ObjectMapper mapper = new ObjectMapper();    
+    
+    @JsonBackReference
+    protected IClient client;
     
     @JsonBackReference
     protected Map<String, Object> extras = new HashMap<>();
 
-    @JsonBackReference
-    protected Compose container;
-
-    public Compose getContainer() {
-        return container;
-    }
-
-    public void setContainer(Compose container) {
-        this.container = container;
-    }
-    
-    @JsonBackReference
-    public IClient getClient() {
-        return getContainer().getClient();
-    }
-    
-    public void setClient(IClient client) {
-        getContainer().setClient(client);
-    }
-    
     public Map getExtras() {
         return extras;
     }
-    
+   
     public void addExtra(String key, Object val) {
         extras.put(key, val);
     }
 
+    @JsonBackReference
+    protected ComposeComponent container;
+
+    public ComposeComponent getContainer() {
+        return container;
+    }
+    
+    public IClient getClient() {
+        return client;
+    }
+    
+    public void setContainer(ComposeComponent container) {
+        this.container = container;
+    }
+    
     public ObjectNode toJsonNode() {
         ObjectNode node = mapper.convertValue(this, ObjectNode.class);
         node.putAll(getExtras());
         return node;
     }
     
-    public String toJSON() throws ClientException {
+    public String toJSON() throws ParserException {
         String json = null;
         try {
             json = mapper.writeValueAsString(this.toJsonNode());
         } catch (JsonProcessingException ex) {
-            throw new ClientException(ex);
+            throw new ParserException(ex);
         }
         return json;
     }

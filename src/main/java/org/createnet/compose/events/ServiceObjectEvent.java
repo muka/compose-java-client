@@ -5,13 +5,13 @@
  */
 package org.createnet.compose.events;
 
-import org.createnet.compose.object.ServiceObject;
+import org.createnet.compose.objects.ServiceObject;
 
 /**
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public class ServiceObjectEvent {
+public class ServiceObjectEvent implements IEvent {
 
     private final ServiceObject object;
 

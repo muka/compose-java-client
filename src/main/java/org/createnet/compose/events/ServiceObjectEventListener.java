@@ -5,20 +5,9 @@
  */
 package org.createnet.compose.events;
 
-import org.createnet.compose.exception.ClientException;
-
 /**
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public interface ServiceObjectEventListener {
-
-    public void onCreate(ServiceObjectEvent ev) throws ClientException;
-
-    public void onUpdate(ServiceObjectEvent ev) throws ClientException;
-
-    public void onDelete(ServiceObjectEvent ev) throws ClientException;
-
-    public void onLoad(ServiceObjectEvent ev) throws ClientException;
-
+abstract class ServiceObjectEventListener implements IEventListener {
 }

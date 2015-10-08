@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.createnet.compose.object;
+package org.createnet.compose.objects;
 
-import org.createnet.compose.objects.StreamContainer;
-import org.createnet.compose.objects.Subscription;
-import org.createnet.compose.objects.Stream;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.createnet.compose.client.IClient;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -98,23 +94,6 @@ public class Subscription extends StreamContainer {
         
     }
     
-    /**
-     * @TODO add subscriptions methods
-     */
-    
-    
-    public Subscription load() {
-        
-        IClient.Result res = this.getClient().load(new IClient.Subject(this));
-        try {
-            parse(res.getContent());
-        } catch (ParserException ex) {
-            logger.error("Cannot parse response", ex);
-        }
-
-        return this;
-    }
-
     @Override
     public void validate() throws ValidationException {
         throw new ValidationException("Not implemented");

@@ -12,7 +12,7 @@ import org.createnet.compose.objects.Stream;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public class StreamEvent {
+public class StreamEvent implements IEvent {
 
     private final Stream stream;
     private ResultSet resultset;

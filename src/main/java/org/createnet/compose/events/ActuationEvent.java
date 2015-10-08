@@ -11,7 +11,7 @@ import org.createnet.compose.objects.Actuation;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public class ActuationEvent {
+public class ActuationEvent implements IEvent {
 
     private final Actuation actuation;
     private String status;

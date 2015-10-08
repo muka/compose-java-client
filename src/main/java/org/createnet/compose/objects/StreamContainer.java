@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.objects;
 
-import org.createnet.compose.objects.ServiceObjectContainer;
-import org.createnet.compose.objects.Stream;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.createnet.compose.Compose;
 
 /**
  *
@@ -31,7 +28,7 @@ abstract class StreamContainer extends ServiceObjectContainer
     protected Stream stream;
 
     @Override
-    public Compose getContainer() {
+    public ComposeComponent getContainer() {
         return stream.getServiceObject().getContainer();
     }
     

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.events;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class Channel extends org.createnet.compose.objects.Channel
-{
-    
+public interface IEventListener {
+    public void onCreate(IEvent ev);
+    public void onUpdate(IEvent ev);
+    public void onDelete(IEvent ev);
+    public void onLoad(IEvent ev);
 }

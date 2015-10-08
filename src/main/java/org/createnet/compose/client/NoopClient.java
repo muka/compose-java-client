@@ -21,7 +21,7 @@ import java.util.Map;
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
-public class NoopClient implements org.createnet.compose.objects.client.IClient {
+public class NoopClient implements org.createnet.compose.client.IClient {
 
     protected String apiKey;
     protected String uri = "http://servioticy.com";

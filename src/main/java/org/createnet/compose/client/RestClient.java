@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.createnet.compose.exception.RequestException;
 import org.createnet.compose.objects.ComposeComponent;
-import org.createnet.compose.objects.client.IClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

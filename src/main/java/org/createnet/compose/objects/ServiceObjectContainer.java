@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.createnet.compose.object;
+package org.createnet.compose.objects;
 
-import org.createnet.compose.objects.ComposeContainer;
-import org.createnet.compose.objects.ServiceObject;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.createnet.compose.Compose;
 
 /**
  *
@@ -30,7 +27,7 @@ abstract class ServiceObjectContainer extends ComposeContainer {
     protected ServiceObject serviceObject;
 
     @Override
-    public Compose getContainer() {
+    public ComposeComponent getContainer() {
         return getServiceObject().getContainer();
     }
     
@@ -42,5 +39,11 @@ abstract class ServiceObjectContainer extends ComposeContainer {
     public ServiceObject getServiceObject() {
         return serviceObject;
     }
+
+    @Override
+    abstract public void validate() throws ValidationException;
+
+    @Override
+    abstract public void parse(String json) throws ParserException;
     
 }

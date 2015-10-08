@@ -9,18 +9,7 @@ package org.createnet.compose.events;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public interface StreamEventListener {
-
-    public void onCreate(StreamEvent ev);
-
-    public void onUpdate(StreamEvent ev);
-
-    public void onDelete(StreamEvent ev);
-
-    public void onLoad(StreamEvent ev);
-    
-    public void onPush(StreamEvent ev);
-    
-    public void onPull(StreamEvent ev);
-
+abstract class StreamEventListener implements IEventListener {
+    abstract public void onPush(StreamEvent ev);
+    abstract public void onPull(StreamEvent ev);
 }

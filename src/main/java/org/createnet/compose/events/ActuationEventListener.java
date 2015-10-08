@@ -9,16 +9,6 @@ package org.createnet.compose.events;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-public interface ActuationEventListener {
-
-    public void onCreate(ActuationEvent ev);
-
-    public void onUpdate(ActuationEvent ev);
-
-    public void onDelete(ActuationEvent ev);
-
-    public void onLoad(ActuationEvent ev);
-    
-    public void onStatus(ActuationEvent ev);
-
+abstract class ActuationEventListener {
+    abstract public void onStatus(ActuationEvent ev);
 }
