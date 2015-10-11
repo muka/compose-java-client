@@ -54,4 +54,7 @@ public interface ComposeComponent {
         }
     }
     
+    public IClient getClient();
+    public void setClient(IClient client);
+    
 }

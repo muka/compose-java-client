@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package org.createnet.compose.objects;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.createnet.compose.objects.serializer.StreamSerializer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
@@ -25,6 +23,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.createnet.compose.client.IClient;
+import org.createnet.compose.data.IRecord;
+import org.createnet.compose.data.RecordSet;
+import org.createnet.compose.data.ResultSet;
+import org.createnet.compose.events.StreamEvent;
+import org.createnet.compose.exception.ClientException;
+import org.createnet.compose.exception.RecordsetException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -32,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @author Luca Capra <luca.capra@gmail.com>
  */
 @JsonSerialize(using = StreamSerializer.class)
-public class Stream extends ServiceObjectContainer {
+public class Stream extends StreamContainer {
     
     org.slf4j.Logger logger = LoggerFactory.getLogger(Stream.class);    
     
@@ -107,5 +114,101 @@ public class Stream extends ServiceObjectContainer {
     public void validate() throws ValidationException {
         throw new ValidationException("Not implemented yet."); 
     }
+
+ 
+    /**
+     *
+     * @param dataset
+     * @throws RequestException
+     * @throws ClientException
+     * @throws com.fasterxml.jackson.core.JsonProcessingException
+     */
+    public void push(Map dataset) throws ClientException {
+        push(dataset, new Date());
+    }
+    
+    /**
+     *
+     * @param dataset
+     * @param lastUpdate
+     * @throws RequestException
+     * @throws ClientException
+     * @throws com.fasterxml.jackson.core.JsonProcessingException
+     */
+    public void push(Map<String, Object> dataset, Date lastUpdate) throws ClientException {
+        
+        ArrayList<IRecord> records = new ArrayList<>();
+        
+        for (Map.Entry<String, Object> entrySet : dataset.entrySet()) {
+            
+            String key = entrySet.getKey();
+            Object value = entrySet.getValue();
+            
+            IRecord record = RecordSet.createRecord(this, key, value);
+            
+            if(record == null) continue;
+            
+            records.add(record);
+        }
+        
+        push(records, lastUpdate);
+    }
+    
+    /**
+     *
+     * @param dataset
+     * @throws RequestException
+     * @throws ClientException
+     */
+    public void push(ArrayList<IRecord> dataset) throws ClientException {
+        push(dataset, new Date());
+    }
+
+    /**
+     *
+     * @param dataset
+     * @param lastUpdate
+     * @throws RequestException
+     * @throws ClientException
+     * @throws com.fasterxml.jackson.core.JsonProcessingException
+     */
+    public void push(ArrayList<IRecord> dataset, Date lastUpdate) throws ClientException {
+        RecordSet records = new RecordSet(dataset, lastUpdate);
+        push(records);
+    }
+        
+    public void push(RecordSet records) throws ClientException {      
+        
+        IClient.Subject subj = new IClient.Subject(this);
+        try {
+            subj.setContent(records.toJSON());       
+        } catch (JsonProcessingException ex) {
+            throw new ClientException(ex);
+        }
+        
+        this.getClient().update(subj);    
+    }
+    
+    public ResultSet pull() throws ClientException {
+        return pull(false);
+    }
+
+    public ResultSet pull(boolean lastUpdate) throws ClientException {
+
+        IClient.Subject subj = new IClient.Subject(this);
+        subj.getExtras().put("lastUpdate", lastUpdate);
+        ResultSet resultset;
+        try {
+            IClient.Result res = this.getClient().load(subj);        
+            resultset = new ResultSet(this, res.getContent());
+        } catch (RecordsetException ex) {
+            throw new ClientException(ex);
+        }
+        
+        if(hasListener()) getListener().onPull(new StreamEvent(this, resultset));
+        
+        return resultset;
+    }
+
     
 }

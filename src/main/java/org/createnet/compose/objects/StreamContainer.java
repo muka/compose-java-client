@@ -16,6 +16,8 @@
 package org.createnet.compose.objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.createnet.compose.events.IEventListener;
+import org.createnet.compose.events.StreamEventListener;
 
 /**
  *
@@ -23,6 +25,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  */
 abstract class StreamContainer extends ServiceObjectContainer
 {
+    
+    @JsonBackReference
+    protected StreamEventListener listener;
     
     @JsonBackReference
     protected Stream stream;
@@ -39,6 +44,20 @@ abstract class StreamContainer extends ServiceObjectContainer
     public void setStream(Stream stream) {
         this.stream = stream;
         this.setServiceObject(stream.getServiceObject());
+    }
+ 
+    @Override
+    public StreamEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(StreamEventListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    protected boolean hasListener() {
+        return getListener() != null;
     }
     
 }

@@ -9,7 +9,7 @@ package org.createnet.compose.events;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-abstract class StreamEventListener implements IEventListener {
+public interface StreamEventListener extends ServiceObjectEventListener {
     abstract public void onPush(StreamEvent ev);
     abstract public void onPull(StreamEvent ev);
 }

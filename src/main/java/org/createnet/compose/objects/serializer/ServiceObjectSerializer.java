@@ -37,13 +37,9 @@ public class ServiceObjectSerializer extends JsonSerializer<ServiceObject> {
         jg.writeStringField("name", t.name);
         jg.writeStringField("description", t.description);
         
-        if(!t.streams.isEmpty()) {
-            jg.writeObjectField("streams", t.streams);
-        }
-        
-        if(!t.actuations.isEmpty()) {
-            jg.writeObjectField("actuations", t.actuations);
-        }
+        jg.writeObjectField("customFields", t.customFields);
+        jg.writeObjectField("streams", t.streams);
+        jg.writeObjectField("actuations", t.actuations);
         
         jg.writeEndObject();
 

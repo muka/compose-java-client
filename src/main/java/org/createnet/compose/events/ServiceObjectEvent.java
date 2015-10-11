@@ -5,6 +5,7 @@
  */
 package org.createnet.compose.events;
 
+import java.util.List;
 import org.createnet.compose.objects.ServiceObject;
 
 /**
@@ -13,14 +14,23 @@ import org.createnet.compose.objects.ServiceObject;
  */
 public class ServiceObjectEvent implements IEvent {
 
-    private final ServiceObject object;
+    private ServiceObject object = null;
+    private List<ServiceObject> list = null;
 
     public ServiceObjectEvent(ServiceObject object) {
         this.object = object;
     }
+    
+    public ServiceObjectEvent(List<ServiceObject> objects) {
+        this.list = objects;
+    }
 
     public ServiceObject getObject() {
         return object;
+    }
+    
+    public List<ServiceObject> getList() {
+        return list;
     }
 
 }

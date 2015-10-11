@@ -15,14 +15,19 @@
  */
 package org.createnet.compose.objects;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.createnet.compose.objects.serializer.ServiceObjectSerializer;
 import org.createnet.compose.objects.deserializer.ServiceObjectDeserializer;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.createnet.compose.client.IClient;
+import org.createnet.compose.events.ServiceObjectEvent;
+import org.createnet.compose.exception.ClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +37,13 @@ import org.slf4j.LoggerFactory;
  */
 @JsonSerialize(using = ServiceObjectSerializer.class)
 @JsonDeserialize(using = ServiceObjectDeserializer.class)
-
-public class ServiceObject extends ComposeContainer
+public class ServiceObject extends ServiceObjectContainer
 {
     
     Logger logger = LoggerFactory.getLogger(ServiceObject.class);
+    
+    @JsonBackReference
+    private boolean isNew = false;
     
     public String id;
     
@@ -89,7 +96,12 @@ public class ServiceObject extends ComposeContainer
 
     @Override
     public void validate() throws ValidationException {
-        throw new ValidationException("Not supported yet.");
+        
+        if(this.name == null)
+            throw new ValidationException("name field missing");
+        
+        if(!this.isNew())
+            throw new ValidationException("id field missing");
     }
 
     @Override
@@ -112,9 +124,65 @@ public class ServiceObject extends ComposeContainer
         streams = serviceObject.streams;
         subscriptions = serviceObject.subscriptions;
         actuations = serviceObject.actuations;
-
+        
+        isNew(id != null);
+        
         serviceObject = null;
                 
+    }
+
+    
+     public ServiceObject load() throws ClientException {
+
+         IClient.Result res = this.getClient().load(new IClient.Subject(this.id));
+         String json = res.getContent();
+
+         try {
+             parse(json);
+         } catch (ParserException ex) {
+             throw new ClientException(ex);
+         }
+         
+         if(hasListener()) getListener().onLoad(new ServiceObjectEvent(this));
+         
+         return this;
+     }
+     
+     public void delete() throws ClientException {
+         this.getClient().delete(new IClient.Subject(new ServiceObject(this.id)));
+         this.id = null;
+         if(hasListener()) getListener().onDelete(new ServiceObjectEvent(this));        
+     }
+     
+     public void update() throws ClientException {
+         if(hasListener()) getListener().onUpdate(new ServiceObjectEvent(this));
+         IClient.Result res = this.getClient().update(new IClient.Subject(this));
+     }
+
+    public List<ServiceObject> list() throws ClientException {
+        
+        IClient.Result res = this.getClient().list(new IClient.Subject());
+        
+        List<ServiceObject> list = null;
+        try {
+            ServiceObject[] array = mapper.readValue(res.getContent(), ServiceObject[].class);
+            list = Arrays.asList(array);
+        } catch (IOException ex) {
+            throw new ClientException(ex);
+        }
+
+        if(hasListener()) getListener().onList(new ServiceObjectEvent(list));
+        
+        return list;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+    
+    public boolean isNew(boolean isnew) {
+        isNew = isnew;
+        return isNew;
     }
     
 }

@@ -9,6 +9,6 @@ package org.createnet.compose.events;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-abstract class ActuationEventListener {
-    abstract public void onStatus(ActuationEvent ev);
+public interface ActuationEventListener extends IEventListener {
+    public void onStatus(ActuationEvent ev);    
 }

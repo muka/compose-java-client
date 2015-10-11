@@ -38,19 +38,26 @@ public class ServiceObjectDeserializer extends JsonDeserializer<ServiceObject> {
         
         JsonNode tree = jp.getCodec().readTree(jp);
   
-        serviceObject.id = tree.get("id").asText();
-        serviceObject.name = tree.get("name").asText();
-        serviceObject.description = tree.get("description").asText();
+        if(tree.has("id"))
+            serviceObject.id = tree.get("id").asText();
         
-        for (JsonNode jsonStream : tree.get("streams")) {
-            Stream stream = new Stream(jsonStream);
-            serviceObject.streams.put(stream.name, stream);
-        }
+        if(tree.has("name"))
+            serviceObject.name = tree.get("name").asText();
         
-        for (JsonNode json : tree.get("actuations")) {
-            Actuation actuation = new Actuation(json);
-            serviceObject.actuations.put(actuation.name, actuation);
-        }
+        if(tree.has("description"))
+            serviceObject.description = tree.get("description").asText();
+        
+        if(tree.has("streams"))
+            for (JsonNode jsonStream : tree.get("streams")) {
+                Stream stream = new Stream(jsonStream);
+                serviceObject.streams.put(stream.name, stream);
+            }
+            
+        if(tree.has("actuations"))
+            for (JsonNode json : tree.get("actuations")) {
+                Actuation actuation = new Actuation(json);
+                serviceObject.actuations.put(actuation.name, actuation);
+            }
         
         return serviceObject;
     }

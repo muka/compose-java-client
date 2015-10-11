@@ -9,5 +9,7 @@ package org.createnet.compose.events;
  *
  * @author Luca Capra <luca.capra@create-net.org>
  */
-abstract class ServiceObjectEventListener implements IEventListener {
+public interface ServiceObjectEventListener extends IEventListener {
+
+    public void onList(ServiceObjectEvent serviceObjectEvent);
 }

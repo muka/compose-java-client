@@ -67,15 +67,9 @@ public class Compose implements ComposeComponent {
     }
     
     public void update(String soid, String definition) throws ClientException {
-        
         ServiceObject so = readDefinition(definition);
         so.id = soid;
-        
-        try {
-            so.update();
-        } catch (RequestException ex) {
-            throw new ClientException(ex);
-        }
+        so.update();
     }
     
     public String getApiKey() {
@@ -86,14 +80,15 @@ public class Compose implements ComposeComponent {
         return uri;
     }
     
-
+    @Override    
     public void setClient(IClient client) {
         this.client = client;
     }
     
+    @Override
     public IClient getClient() {
-        return client;
-    }
+        return this.client;
+    }    
     
     public Channel createChannel(String soId, String streamName, String channelName) {
         Stream stream = createStream(soId, streamName);
@@ -174,7 +169,7 @@ public class Compose implements ComposeComponent {
         return serviceObject;
     }
     
-    public static void main(String[] args) throws RequestException, ClientException, IOException {
+    public static void main(String[] args) throws RequestException, ClientException, IOException, ParserException {
         
         Logger logger2 = LoggerFactory.getLogger(Compose.class);
         

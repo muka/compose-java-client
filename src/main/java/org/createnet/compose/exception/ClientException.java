@@ -26,4 +26,8 @@ public class ClientException extends Exception
         super("ClientException", ex);
     }
     
+    public ClientException(String reason) {
+        super(reason);
+    }
+    
 }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
 import java.util.Map;
 import org.createnet.compose.client.IClient;
+import org.createnet.compose.events.IEventListener;
 
 /**
  *
@@ -34,13 +35,15 @@ abstract class ComposeContainer implements ComposeComponent {
     
     protected final ObjectMapper mapper = new ObjectMapper();    
     
+    protected IEventListener listener;
+    
     @JsonBackReference
     protected IClient client;
     
     @JsonBackReference
     protected Map<String, Object> extras = new HashMap<>();
 
-    public Map getExtras() {
+    public Map<String, Object> getExtras() {
         return extras;
     }
    
@@ -55,17 +58,45 @@ abstract class ComposeContainer implements ComposeComponent {
         return container;
     }
     
+    @Override
     public IClient getClient() {
         return client;
     }
     
+    @Override
+    public void setClient(IClient client) {
+        this.client = client;
+    }
+    
     public void setContainer(ComposeComponent container) {
         this.container = container;
+        setClient(container.getClient());
     }
     
     public ObjectNode toJsonNode() {
         ObjectNode node = mapper.convertValue(this, ObjectNode.class);
-        node.putAll(getExtras());
+        
+        if(!getExtras().isEmpty()) {
+            getExtras().entrySet().stream().forEach((Map.Entry<String, Object> el) -> { 
+                
+                String field = el.getKey();
+                Object val = el.getValue();
+                
+                if(val instanceof String) {
+                    node.put(field, (String) val);
+                }
+                
+                if(val instanceof Integer) {
+                    node.put(field, Integer.parseInt((String) val));
+                }
+                
+                if(val instanceof Long) {
+                    node.put(field, Long.parseLong((String) val));
+                }
+                
+            });
+        }
+        
         return node;
     }
     
@@ -78,5 +109,18 @@ abstract class ComposeContainer implements ComposeComponent {
         }
         return json;
     }
+    
+    public IEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(IEventListener listener) {
+        this.listener = listener;
+    }
+
+    protected boolean hasListener() {
+        return getListener() != null;
+    }
+    
     
 }

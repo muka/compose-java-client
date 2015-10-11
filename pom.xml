@@ -78,11 +78,6 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.12</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>servioticy-objects</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
     
 </project>

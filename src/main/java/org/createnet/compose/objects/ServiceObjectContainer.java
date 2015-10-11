@@ -16,12 +16,16 @@
 package org.createnet.compose.objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.createnet.compose.events.ServiceObjectEventListener;
 
 /**
  *
  * @author Luca Capra <luca.capra@gmail.com>
  */
 abstract class ServiceObjectContainer extends ComposeContainer {
+
+    @JsonBackReference
+    protected ServiceObjectEventListener listener;
     
     @JsonBackReference
     protected ServiceObject serviceObject;
@@ -40,6 +44,15 @@ abstract class ServiceObjectContainer extends ComposeContainer {
         return serviceObject;
     }
 
+    @Override
+    public ServiceObjectEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(ServiceObjectEventListener listener) {
+        this.listener = listener;
+    }    
+    
     @Override
     abstract public void validate() throws ValidationException;
 
